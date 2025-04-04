@@ -122,7 +122,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Plant" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Plants</SelectItem>
+                <SelectItem value="all-plants">All Plants</SelectItem>
                 {plants.map((plant) => (
                   <SelectItem key={plant.id} value={plant.id}>
                     {plant.name}
@@ -142,7 +142,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Line" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Lines</SelectItem>
+                <SelectItem value="all-lines">All Lines</SelectItem>
                 {availableLines.map((line) => (
                   <SelectItem key={line.id} value={line.id}>
                     {line.name}
@@ -162,7 +162,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Station" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Stations</SelectItem>
+                <SelectItem value="all-stations">All Stations</SelectItem>
                 {availableStations.map((station) => (
                   <SelectItem key={station.id} value={station.id}>
                     {station.name}
@@ -182,7 +182,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Program" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Programs</SelectItem>
+                <SelectItem value="all-programs">All Programs</SelectItem>
                 {programs.map((program) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.name}
@@ -202,7 +202,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Part" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Parts</SelectItem>
+                <SelectItem value="all-parts">All Parts</SelectItem>
                 {parts.map((part) => (
                   <SelectItem key={part.id} value={part.id}>
                     {part.name}
