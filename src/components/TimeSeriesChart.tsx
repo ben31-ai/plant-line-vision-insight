@@ -90,7 +90,24 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data, title = 
                 }}
                 labelStyle={{ fontWeight: "bold", marginBottom: "0.25rem" }}
                 formatter={(value: number) => [`${value.toFixed(2)}`, ""]}
-                labelFormatter={(time) => format(new Date(formattedData[time]?.timestamp), 'MMM dd, yyyy HH:mm')}
+                labelFormatter={(time) => {
+                  // Safety check to ensure we have valid data
+                  if (typeof time !== 'number' || time < 0 || time >= formattedData.length || !formattedData[time]) {
+                    return "Unknown time";
+                  }
+                  
+                  const timestamp = formattedData[time].timestamp;
+                  if (!(timestamp instanceof Date) && (typeof timestamp !== 'string' && typeof timestamp !== 'number')) {
+                    return "Invalid timestamp";
+                  }
+                  
+                  try {
+                    return format(new Date(timestamp), 'MMM dd, yyyy HH:mm');
+                  } catch (error) {
+                    console.error("Error formatting date:", error, "Timestamp:", timestamp);
+                    return "Date formatting error";
+                  }
+                }}
               />
               <Legend
                 wrapperStyle={{
