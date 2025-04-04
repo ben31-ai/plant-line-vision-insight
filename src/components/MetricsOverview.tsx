@@ -37,6 +37,12 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ metrics }) => 
     }
   };
 
+  const getStatusColor = (percentage: number) => {
+    if (percentage > 90) return "bg-success";
+    if (percentage > 75) return "bg-warning";
+    return "bg-destructive";
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card className="bg-card shadow-md">
@@ -63,13 +69,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ metrics }) => 
           <Progress 
             value={metrics.controllerOkPercentage} 
             className="mt-2 h-2"
-            indicatorColor={
-              metrics.controllerOkPercentage > 90 
-                ? "bg-success" 
-                : metrics.controllerOkPercentage > 75 
-                  ? "bg-warning" 
-                  : "bg-destructive"
-            }
+            color={getStatusColor(metrics.controllerOkPercentage)}
           />
           <div className="mt-2">{renderTrendIcon(metrics.trend)}</div>
         </CardContent>
@@ -89,13 +89,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({ metrics }) => 
           <Progress 
             value={metrics.aiOkPercentage} 
             className="mt-2 h-2"
-            indicatorColor={
-              metrics.aiOkPercentage > 90 
-                ? "bg-success" 
-                : metrics.aiOkPercentage > 75 
-                  ? "bg-warning" 
-                  : "bg-destructive"
-            }
+            color={getStatusColor(metrics.aiOkPercentage)}
           />
           <div className="mt-2">{renderTrendIcon(metrics.trend)}</div>
         </CardContent>
