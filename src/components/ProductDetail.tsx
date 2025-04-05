@@ -1,12 +1,13 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ProductDetail as ProductDetailType } from "@/utils/mockData";
 import { TimeSeriesChart } from "./TimeSeriesChart";
 import { ImageViewer } from "./ImageViewer";
 import { format } from "date-fns";
-import { X } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 
 interface ProductDetailProps {
   product: ProductDetailType | null;
@@ -15,6 +16,8 @@ interface ProductDetailProps {
 }
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, onClose }) => {
+  const navigate = useNavigate();
+  
   if (!product) return null;
 
   const renderStatusIndicator = (status: 'ok' | 'warning' | 'error') => {
@@ -26,6 +29,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
           : 'status-error';
     
     return <span className={`status-indicator ${statusClass}`}></span>;
+  };
+  
+  const handleViewDetails = () => {
+    onClose();
+    navigate(`/product/${product.id}`, { state: { product } });
   };
 
   return (
@@ -92,8 +100,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, isOpen, o
         </div>
 
         <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="mr-2">
             Close
+          </Button>
+          <Button onClick={handleViewDetails}>
+            View Complete Details
+            <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>
