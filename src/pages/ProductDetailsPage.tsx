@@ -120,6 +120,7 @@ const ProductDetailsPage: React.FC = () => {
           </Button>
         </CardHeader>
         <CardContent>
+          {/* Pass initial data from product, but the component will also try to fetch from API */}
           <TimeSeriesEChart data={product.timeSeries} />
         </CardContent>
       </Card>
