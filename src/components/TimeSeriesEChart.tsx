@@ -1,11 +1,15 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { TimeSeriesPoint } from "@/utils/mockData";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+// Import echarts core and the required components for 3D
+import * as echarts from 'echarts/core';
+// Import the extension for 3D charts
+import 'echarts-gl';
 
 interface TimeSeriesEChartProps {
   data: TimeSeriesPoint[];
@@ -31,6 +35,13 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
 
   // Get available metrics
   const availableMetrics = Object.keys(groupedByMetric);
+
+  // Reset 3D state when z-axis is set to none
+  useEffect(() => {
+    if (zAxisMetric === "none" && is3D) {
+      setIs3D(false);
+    }
+  }, [zAxisMetric, is3D]);
 
   // Format data based on selected axes
   const formatChartData = () => {
@@ -82,8 +93,12 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
     if (is3D && zAxisMetric !== "none") {
       // 3D chart options
       return {
-        grid3D: {},
-        tooltip: {},
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params: any) {
+            return `${params.name}<br/>${yAxisMetric}: ${params.value[1].toFixed(2)}<br/>${zAxisMetric}: ${params.value[2].toFixed(2)}`;
+          }
+        },
         xAxis3D: {
           type: xAxisMetric === "timestamp" ? "category" : "value",
           name: xAxisMetric === "timestamp" ? "Time" : xAxisMetric,
@@ -96,10 +111,28 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
           type: "value",
           name: zAxisMetric,
         },
+        grid3D: {
+          viewControl: {
+            projection: 'perspective',
+            autoRotate: false
+          },
+          boxHeight: 80,
+        },
         series: [
           {
             type: "scatter3D",
             data: formatChartData(),
+            symbolSize: 8,
+            itemStyle: {
+              color: '#0EA5E9',
+              opacity: 0.8
+            },
+            emphasis: {
+              itemStyle: {
+                color: '#F97316',
+                opacity: 1
+              }
+            }
           },
         ],
       };
