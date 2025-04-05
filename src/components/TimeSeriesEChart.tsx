@@ -14,7 +14,7 @@ interface TimeSeriesEChartProps {
 export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
   const [xAxisMetric, setXAxisMetric] = useState<string>("timestamp");
   const [yAxisMetric, setYAxisMetric] = useState<string>("Temperature");
-  const [zAxisMetric, setZAxisMetric] = useState<string>("");
+  const [zAxisMetric, setZAxisMetric] = useState<string>("none");
   const [is3D, setIs3D] = useState<boolean>(false);
 
   // Group data by metric
@@ -34,7 +34,7 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
 
   // Format data based on selected axes
   const formatChartData = () => {
-    if (!is3D || !zAxisMetric) {
+    if (!is3D || zAxisMetric === "none") {
       // 2D chart data
       return data
         .filter((point) => point.metric === yAxisMetric)
@@ -79,7 +79,7 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
 
   // Generate ECharts options
   const getChartOptions = () => {
-    if (is3D && zAxisMetric) {
+    if (is3D && zAxisMetric !== "none") {
       // 3D chart options
       return {
         grid3D: {},
@@ -129,7 +129,7 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
             name: yAxisMetric,
           },
         ],
-        ...(zAxisMetric ? {
+        ...(zAxisMetric !== "none" ? {
           yAxis: [
             {
               type: "value",
@@ -221,7 +221,7 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
               <SelectValue placeholder="Select Z axis" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               {availableMetrics
                 .filter((metric) => metric !== yAxisMetric)
                 .map((metric) => (
@@ -234,7 +234,7 @@ export const TimeSeriesEChart: React.FC<TimeSeriesEChartProps> = ({ data }) => {
         </div>
         
         <div className="flex items-end">
-          {zAxisMetric && (
+          {zAxisMetric !== "none" && (
             <Button
               onClick={() => setIs3D(!is3D)}
               variant="outline"
