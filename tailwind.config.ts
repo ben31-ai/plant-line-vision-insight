@@ -61,6 +61,12 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				outline: 'hsl(var(--outline))',
+				tertiary: 'hsl(var(--tertiary))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

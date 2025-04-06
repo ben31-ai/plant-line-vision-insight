@@ -5,39 +5,46 @@
 
 @layer base {
   :root {
-    --background: 210 33% 14%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 96.5%; /* #F6F6F6 */
+    --foreground: 0 0% 20.4%; /* #343434 */
 
-    --card: 210 33% 18%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 20.4%; /* #343434 */
 
-    --popover: 210 33% 18%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 20.4%; /* #343434 */
 
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 150 100% 27%; /* #00893D */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 217 33% 25%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 164 100% 18.4%; /* #005E46 */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 217 33% 25%;
-    --muted-foreground: 215 20% 65%;
+    --tertiary: 193 24% 37%; /* #476E75 */
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 0 0% 96.5%; /* #F6F6F6 */
+    --muted-foreground: 0 0% 39.2%; /* #646464 */
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 150 100% 27%; /* #00893D */
+    --accent-foreground: 0 0% 100%; /* White */
 
-    --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --destructive: 356 89% 42%; /* #CB0B15 */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 210 40% 98%;
+    --success: 84 40% 58%; /* #A1C861 */
+    --success-foreground: 0 0% 20.4%; /* #343434 */
 
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 199 89% 48%;
+    --warning: 44 100% 45.7%; /* #E9B300 */
+    --warning-foreground: 0 0% 20.4%; /* #343434 */
+
+    --info: 191 73% 41%; /* #1C98B5 */
+    --info-foreground: 0 0% 100%; /* White */
+
+    --outline: 0 0% 82%; /* #D0D0D0 */
+
+    --border: 0 0% 82%; /* #D0D0D0 */
+    --input: 0 0% 82%; /* #D0D0D0 */
+    --ring: 150 100% 27%; /* #00893D */
 
     --radius: 0.5rem;
   }
