@@ -1,4 +1,3 @@
-
 import { subDays, addHours } from 'date-fns';
 
 // Define types for our data structures
@@ -79,6 +78,14 @@ export interface MLInsight {
   description: string;
   severity: 'info' | 'warning' | 'critical';
   timestamp: Date;
+}
+
+export interface FilterState {
+  plantId: string | null;
+  lineId: string | null;
+  stationId: string | null;
+  programId: string | null;
+  partId: string | null;
 }
 
 // Generate mock data
