@@ -8,6 +8,9 @@ import { ProductDetail } from "./ProductDetail";
 import { MLInsights } from "./MLInsights";
 import { getFilteredProducts, getMetrics, productDetails } from "@/utils/mockData";
 import { subDays } from "date-fns";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Brain } from "lucide-react";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -62,7 +65,15 @@ export const Dashboard = () => {
   
   return (
     <div className="container py-6 mx-auto space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
+        <Link to="/ai-modeling">
+          <Button variant="outline" className="gap-2">
+            <Brain className="h-4 w-4" />
+            AI Modeling Platform
+          </Button>
+        </Link>
+      </div>
       
       <div className="space-y-4">
         {/* Time Range Selector */}
