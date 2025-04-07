@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   NavigationMenu,
@@ -18,9 +18,55 @@ import { MetricsOverview } from "./MetricsOverview";
 import { FilterPanel } from "./FilterPanel";
 import { TimeRangeSelector } from "./TimeRangeSelector";
 import { MLInsights } from "./MLInsights";
-import { mlInsights } from "@/utils/mockData";
+import { mlInsights, products, getMetrics, getFilteredProducts } from "@/utils/mockData";
+import { subDays, endOfDay } from "date-fns";
 
 export const Dashboard = () => {
+  // State for time range
+  const [startDate, setStartDate] = useState(subDays(new Date(), 14));
+  const [endDate, setEndDate] = useState(endOfDay(new Date()));
+  
+  // State for filters
+  const [filters, setFilters] = useState({
+    plantId: null,
+    lineId: null,
+    stationId: null,
+    programId: null,
+    partId: null,
+  });
+  
+  // Get filtered products based on time range and filters
+  const filteredProducts = getFilteredProducts(
+    startDate,
+    endDate,
+    filters.plantId || undefined,
+    filters.lineId || undefined,
+    filters.stationId || undefined,
+    filters.programId || undefined,
+    filters.partId || undefined
+  );
+  
+  // Generate metrics from filtered products
+  const metrics = getMetrics(filteredProducts);
+  
+  // Handle time range changes
+  const handleTimeRangeChange = (start: Date, end: Date) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+  
+  // Handle filter changes
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+  
+  // Handle product selection
+  const handleProductSelect = (productId: string) => {
+    console.log(`Selected product: ${productId}`);
+    // Navigate to product details page
+    window.location.href = `/product/${productId}`;
+  };
+
   return (
     <div className="container mx-auto pb-16">
       <header className="py-6 mb-6 border-b">
@@ -104,7 +150,7 @@ export const Dashboard = () => {
 
         <Card>
           <CardContent>
-            <MetricsOverview />
+            <MetricsOverview metrics={metrics} />
           </CardContent>
         </Card>
 
@@ -117,19 +163,26 @@ export const Dashboard = () => {
 
       <Card className="mb-6">
         <CardContent>
-          <FilterPanel />
+          <FilterPanel onFilterChange={handleFilterChange} />
         </CardContent>
       </Card>
 
       <Card className="mb-6">
         <CardContent>
-          <TimeRangeSelector />
+          <TimeRangeSelector 
+            startDate={startDate}
+            endDate={endDate}
+            onRangeChange={handleTimeRangeChange}
+          />
         </CardContent>
       </Card>
 
       <Card className="lg:col-span-2">
         <CardContent>
-          <ProductsList />
+          <ProductsList 
+            products={filteredProducts} 
+            onSelectProduct={handleProductSelect} 
+          />
         </CardContent>
       </Card>
     </div>
