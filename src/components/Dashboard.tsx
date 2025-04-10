@@ -10,7 +10,7 @@ import { getFilteredProducts, getMetrics, productDetails } from "@/utils/mockDat
 import { subDays } from "date-fns";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Brain } from "lucide-react";
+import { Brain, BarChart } from "lucide-react";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -67,12 +67,20 @@ export const Dashboard = () => {
     <div className="container py-6 mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
-        <Link to="/ai-modeling">
-          <Button variant="outline" className="gap-2">
-            <Brain className="h-4 w-4" />
-            AI Modeling Platform
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/kpi-dashboard">
+            <Button variant="outline" className="gap-2">
+              <BarChart className="h-4 w-4" />
+              KPI Dashboard
+            </Button>
+          </Link>
+          <Link to="/ai-modeling">
+            <Button variant="outline" className="gap-2">
+              <Brain className="h-4 w-4" />
+              AI Modeling Platform
+            </Button>
+          </Link>
+        </div>
       </div>
       
       <div className="space-y-4">
