@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Select,
@@ -162,7 +161,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Plant" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Plants</SelectItem>
+                <SelectItem value="all_plants">All Plants</SelectItem>
                 {plants.map((plant) => (
                   <SelectItem key={plant.id} value={plant.id}>
                     {plant.name}
@@ -182,7 +181,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Line" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Lines</SelectItem>
+                <SelectItem value="all_lines">All Lines</SelectItem>
                 {availableLines.map((line) => (
                   <SelectItem key={line.id} value={line.id}>
                     {line.name}
@@ -202,7 +201,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Station" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Stations</SelectItem>
+                <SelectItem value="all_stations">All Stations</SelectItem>
                 {availableStations.map((station) => (
                   <SelectItem key={station.id} value={station.id}>
                     {station.name}
@@ -222,7 +221,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Program" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Programs</SelectItem>
+                <SelectItem value="all_programs">All Programs</SelectItem>
                 {programs.map((program) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.name}
@@ -242,7 +241,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Part" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Parts</SelectItem>
+                <SelectItem value="all_parts">All Parts</SelectItem>
                 {parts.map((part) => (
                   <SelectItem key={part.id} value={part.id}>
                     {part.name}
@@ -262,7 +261,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Machine Status" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all_statuses">All Statuses</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value} className="flex items-center">
                     <div className="flex items-center gap-1.5">
@@ -285,7 +284,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="AI Status" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all_ai_statuses">All Statuses</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     <div className="flex items-center gap-1.5">

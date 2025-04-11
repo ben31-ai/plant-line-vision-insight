@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TimeRangeSelector } from "./TimeRangeSelector";
@@ -31,7 +30,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { getFilteredProducts, getMetrics } from "@/utils/mockData";
 
-// Sample data for KPI visualization
 const productionData = [
   { name: 'Jan', production: 4000, target: 4500, efficiency: 89 },
   { name: 'Feb', production: 4200, target: 4500, efficiency: 93 },
@@ -58,7 +56,6 @@ const alertData = [
 ];
 
 export const KPIDashboard = () => {
-  // Default to the last 30 days for a KPI dashboard
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState<Date>(new Date());
   
@@ -81,7 +78,6 @@ export const KPIDashboard = () => {
     setFilters(newFilters);
   };
   
-  // Get filtered products and metrics based on current filters
   const products = getFilteredProducts(
     startDate,
     endDate,
@@ -96,13 +92,9 @@ export const KPIDashboard = () => {
   
   const metrics = getMetrics(products);
   
-  // Calculate additional KPIs - using optional chaining to handle potential undefined values
-  // Calculate average cycle time (assumed 5 seconds per product if not defined)
-  const avgCycleTime = 5; // default value
-  
-  // Use a default pass rate of 95% if not defined
-  const passRate = 0.95; // default value
-  const oeeValue = Math.round((passRate * 0.9 * 0.95) * 100); // Simplified OEE calculation
+  const avgCycleTime = 5;
+  const passRate = 0.95;
+  const oeeValue = Math.round((passRate * 0.9 * 0.95) * 100);
   
   return (
     <div className="container py-6 mx-auto space-y-6">
