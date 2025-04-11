@@ -8,9 +8,21 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Plant, Line, Station, Program, Part, plants, lines, stations, programs, parts } from "@/utils/mockData";
+import { 
+  Plant, 
+  Line, 
+  Station, 
+  Program, 
+  Part, 
+  plants, 
+  lines, 
+  stations, 
+  programs, 
+  parts, 
+  Status 
+} from "@/utils/mockData";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, CircleCheck, CircleX, AlertCircle } from "lucide-react";
 
 interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void;
@@ -22,7 +34,16 @@ export interface FilterState {
   stationId: string | null;
   programId: string | null;
   partId: string | null;
+  controllerStatus: Status | null;
+  aiStatus: Status | null;
 }
+
+// Status options with display information
+const statusOptions = [
+  { value: 'ok', label: 'OK', icon: CircleCheck, color: 'text-green-500' },
+  { value: 'warning', label: 'Warning', icon: AlertCircle, color: 'text-amber-500' },
+  { value: 'error', label: 'Error', icon: CircleX, color: 'text-red-500' }
+];
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
   const [filters, setFilters] = useState<FilterState>({
@@ -31,6 +52,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
     stationId: null,
     programId: null,
     partId: null,
+    controllerStatus: null,
+    aiStatus: null,
   });
   
   const [availableLines, setAvailableLines] = useState<Line[]>([]);
@@ -86,6 +109,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
       stationId: null,
       programId: null,
       partId: null,
+      controllerStatus: null,
+      aiStatus: null,
     });
   };
   
@@ -97,6 +122,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
   
   const getActiveFiltersCount = (): number => {
     return Object.values(filters).filter(value => value !== null).length;
+  };
+
+  // Render status badge with appropriate color
+  const renderStatusBadge = (status: Status) => {
+    const statusOption = statusOptions.find(opt => opt.value === status);
+    if (!statusOption) return null;
+    
+    const StatusIcon = statusOption.icon;
+    
+    return (
+      <div className="flex items-center gap-1">
+        <StatusIcon className={`h-3.5 w-3.5 ${statusOption.color}`} />
+        <span>{statusOption.label}</span>
+      </div>
+    );
   };
 
   return (
@@ -122,7 +162,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Plant" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all-plants">All Plants</SelectItem>
+                <SelectItem value="">All Plants</SelectItem>
                 {plants.map((plant) => (
                   <SelectItem key={plant.id} value={plant.id}>
                     {plant.name}
@@ -142,7 +182,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Line" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all-lines">All Lines</SelectItem>
+                <SelectItem value="">All Lines</SelectItem>
                 {availableLines.map((line) => (
                   <SelectItem key={line.id} value={line.id}>
                     {line.name}
@@ -162,7 +202,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Station" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all-stations">All Stations</SelectItem>
+                <SelectItem value="">All Stations</SelectItem>
                 {availableStations.map((station) => (
                   <SelectItem key={station.id} value={station.id}>
                     {station.name}
@@ -182,7 +222,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Program" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all-programs">All Programs</SelectItem>
+                <SelectItem value="">All Programs</SelectItem>
                 {programs.map((program) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.name}
@@ -202,10 +242,56 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <SelectValue placeholder="Part" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all-parts">All Parts</SelectItem>
+                <SelectItem value="">All Parts</SelectItem>
                 {parts.map((part) => (
                   <SelectItem key={part.id} value={part.id}>
                     {part.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Machine Status Filter */}
+          <div>
+            <Select
+              value={filters.controllerStatus || ''}
+              onValueChange={(value) => handleFilterChange('controllerStatus', value as Status || null)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Machine Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="">All Statuses</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status.value} value={status.value} className="flex items-center">
+                    <div className="flex items-center gap-1.5">
+                      <status.icon className={`h-4 w-4 ${status.color}`} />
+                      <span>{status.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* AI Status Filter */}
+          <div>
+            <Select
+              value={filters.aiStatus || ''}
+              onValueChange={(value) => handleFilterChange('aiStatus', value as Status || null)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="AI Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="">All Statuses</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    <div className="flex items-center gap-1.5">
+                      <status.icon className={`h-4 w-4 ${status.color}`} />
+                      <span>{status.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -258,6 +344,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
                 <X 
                   className="h-3 w-3 cursor-pointer" 
                   onClick={() => handleFilterChange('partId', null)} 
+                />
+              </Badge>
+            )}
+            {filters.controllerStatus && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Machine Status: 
+                {renderStatusBadge(filters.controllerStatus)}
+                <X 
+                  className="h-3 w-3 cursor-pointer ml-1" 
+                  onClick={() => handleFilterChange('controllerStatus', null)} 
+                />
+              </Badge>
+            )}
+            {filters.aiStatus && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                AI Status: 
+                {renderStatusBadge(filters.aiStatus)}
+                <X 
+                  className="h-3 w-3 cursor-pointer ml-1" 
+                  onClick={() => handleFilterChange('aiStatus', null)} 
                 />
               </Badge>
             )}

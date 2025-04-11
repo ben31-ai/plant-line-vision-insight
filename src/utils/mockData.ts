@@ -210,7 +210,9 @@ export function getFilteredProducts(
   lineId?: string,
   stationId?: string,
   programId?: string,
-  partId?: string
+  partId?: string,
+  controllerStatus?: Status,
+  aiStatus?: Status
 ): Product[] {
   return products.filter(product => {
     // Time filter
@@ -222,6 +224,10 @@ export function getFilteredProducts(
     if (stationId && product.stationId !== stationId) return false;
     if (programId && product.programId !== programId) return false;
     if (partId && product.partId !== partId) return false;
+    
+    // Status filters
+    if (controllerStatus && product.controllerStatus !== controllerStatus) return false;
+    if (aiStatus && product.aiStatus !== aiStatus) return false;
     
     return true;
   });

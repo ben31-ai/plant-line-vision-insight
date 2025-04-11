@@ -23,6 +23,8 @@ export const Dashboard = () => {
     stationId: null,
     programId: null,
     partId: null,
+    controllerStatus: null,
+    aiStatus: null,
   });
   
   const [products, setProducts] = useState(getFilteredProducts(startDate, endDate));
@@ -38,7 +40,9 @@ export const Dashboard = () => {
       filters.lineId || undefined,
       filters.stationId || undefined,
       filters.programId || undefined,
-      filters.partId || undefined
+      filters.partId || undefined,
+      filters.controllerStatus || undefined,
+      filters.aiStatus || undefined
     );
     setProducts(filteredProducts);
     setMetrics(getMetrics(filteredProducts));
