@@ -4,8 +4,11 @@ import { TimeRangeSelector } from "./TimeRangeSelector";
 import { FilterPanel, FilterState } from "./FilterPanel";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
-import { AreaChart, BarChart, PieChart, Activity, Package, AlertTriangle, Server, ArrowLeft, TrendingUp, Factory, Gauge } from "lucide-react";
+import { 
+  ArrowLeft, TrendingUp, Factory, AlertTriangle, Server 
+} from "lucide-react";
 import { subDays } from "date-fns";
+import { Logo } from "./Logo";
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -108,6 +111,7 @@ export const KPIDashboard = () => {
           </Link>
           <h1 className="text-2xl font-bold">Production KPI Dashboard</h1>
         </div>
+        <Logo />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

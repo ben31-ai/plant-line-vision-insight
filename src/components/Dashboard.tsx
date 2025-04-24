@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FilterPanel, FilterState } from "./FilterPanel";
 import { TimeRangeSelector } from "./TimeRangeSelector";
@@ -11,6 +10,7 @@ import { subDays } from "date-fns";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Brain, BarChart } from "lucide-react";
+import { Logo } from "./Logo";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -71,19 +71,22 @@ export const Dashboard = () => {
     <div className="container py-6 mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
-        <div className="flex gap-2">
-          <Link to="/kpi-dashboard">
-            <Button variant="outline" className="gap-2">
-              <BarChart className="h-4 w-4" />
-              KPI Dashboard
-            </Button>
-          </Link>
-          <Link to="/ai-modeling">
-            <Button variant="outline" className="gap-2">
-              <Brain className="h-4 w-4" />
-              AI Modeling Platform
-            </Button>
-          </Link>
+        <div className="flex items-center gap-4">
+          <Logo className="mr-4" />
+          <div className="flex gap-2">
+            <Link to="/kpi-dashboard">
+              <Button variant="outline" className="gap-2">
+                <BarChart className="h-4 w-4" />
+                KPI Dashboard
+              </Button>
+            </Link>
+            <Link to="/ai-modeling">
+              <Button variant="outline" className="gap-2">
+                <Brain className="h-4 w-4" />
+                AI Modeling Platform
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
       
