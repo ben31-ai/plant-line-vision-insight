@@ -72,7 +72,11 @@ export const Dashboard = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
         <div className="flex items-center gap-4">
-          <Logo className="mr-4" />
+          <Logo 
+            iconSize={36}
+            textSize="text-xl"
+            className="mr-4"
+          />
           <div className="flex gap-2">
             <Link to="/kpi-dashboard">
               <Button variant="outline" className="gap-2">

@@ -1,12 +1,38 @@
 
 import React from 'react';
-import { Diamond } from 'lucide-react';
+import { Diamond, LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export const Logo = ({ className }: { className?: string }) => {
+interface LogoProps {
+  /** Custom text to display next to the icon */
+  text?: string;
+  /** Custom icon component from lucide-react */
+  icon?: LucideIcon;
+  /** Icon size in pixels */
+  iconSize?: number;
+  /** Text size class (e.g., 'text-lg', 'text-xl') */
+  textSize?: string;
+  /** Icon color class (e.g., 'text-primary', 'text-blue-500') */
+  iconColor?: string;
+  /** Text color class (e.g., 'text-gray-800', 'text-white') */
+  textColor?: string;
+  /** Additional className for the container */
+  className?: string;
+}
+
+export const Logo = ({
+  text = 'ManufactureAI',
+  icon: Icon = Diamond,
+  iconSize = 32,
+  textSize = 'text-lg',
+  iconColor = 'text-primary',
+  textColor = 'text-gray-800',
+  className,
+}: LogoProps) => {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Diamond className="h-8 w-8 text-primary" />
-      <span className="font-bold text-lg text-gray-800">ManufactureAI</span>
+    <div className={cn('flex items-center gap-2', className)}>
+      <Icon className={cn(`h-${iconSize / 4} w-${iconSize / 4}`, iconColor)} />
+      <span className={cn('font-bold', textSize, textColor)}>{text}</span>
     </div>
   );
 };

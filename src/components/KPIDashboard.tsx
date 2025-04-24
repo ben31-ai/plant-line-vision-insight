@@ -5,7 +5,8 @@ import { FilterPanel, FilterState } from "./FilterPanel";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import { 
-  ArrowLeft, TrendingUp, Factory, AlertTriangle, Server 
+  ArrowLeft, TrendingUp, Factory, AlertTriangle, Server,
+  Activity, Package, Gauge
 } from "lucide-react";
 import { subDays } from "date-fns";
 import { Logo } from "./Logo";
@@ -111,7 +112,11 @@ export const KPIDashboard = () => {
           </Link>
           <h1 className="text-2xl font-bold">Production KPI Dashboard</h1>
         </div>
-        <Logo />
+        <Logo 
+          iconSize={36} 
+          textSize="text-xl"
+          className="text-primary"
+        />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
