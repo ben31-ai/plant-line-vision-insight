@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Brain, BarChart } from "lucide-react";
 import { Logo } from "./Logo";
+import { Footer } from "./Footer";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -68,75 +69,78 @@ export const Dashboard = () => {
   const selectedProduct = selectedProductId ? productDetails[selectedProductId] : null;
   
   return (
-    <div className="container py-6 mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
-        <div className="flex items-center gap-4">
-          <Logo 
-            iconSize={36}
-            textSize="text-xl"
-            className="mr-4"
-          />
-          <div className="flex gap-2">
-            <Link to="/kpi-dashboard">
-              <Button variant="outline" className="gap-2">
-                <BarChart className="h-4 w-4" />
-                KPI Dashboard
-              </Button>
-            </Link>
-            <Link to="/ai-modeling">
-              <Button variant="outline" className="gap-2">
-                <Brain className="h-4 w-4" />
-                AI Modeling Platform
-              </Button>
-            </Link>
+    <div className="min-h-screen flex flex-col">
+      <div className="container py-6 mx-auto space-y-6 flex-grow">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
+          <div className="flex items-center gap-4">
+            <Logo 
+              iconSize={36}
+              textSize="text-xl"
+              className="mr-4"
+            />
+            <div className="flex gap-2">
+              <Link to="/kpi-dashboard">
+                <Button variant="outline" className="gap-2">
+                  <BarChart className="h-4 w-4" />
+                  KPI Dashboard
+                </Button>
+              </Link>
+              <Link to="/ai-modeling">
+                <Button variant="outline" className="gap-2">
+                  <Brain className="h-4 w-4" />
+                  AI Modeling Platform
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="space-y-4">
-        {/* Time Range Selector */}
-        <div>
-          <h2 className="text-lg font-medium mb-3">Time Range</h2>
-          <TimeRangeSelector 
-            startDate={startDate}
-            endDate={endDate}
-            onRangeChange={handleTimeRangeChange}
-          />
-        </div>
         
-        {/* Filters */}
-        <div>
-          <h2 className="text-lg font-medium mb-3">Process Filters</h2>
-          <FilterPanel onFilterChange={handleFilterChange} />
-        </div>
-        
-        {/* Metrics */}
-        <div>
-          <h2 className="text-lg font-medium mb-3">Process Metrics</h2>
-          <MetricsOverview metrics={metrics} />
-        </div>
-        
-        {/* Products and ML Insights section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <h2 className="text-lg font-medium mb-3">Product List</h2>
-            <ProductsList products={products} onSelectProduct={handleSelectProduct} />
+        <div className="space-y-4">
+          {/* Time Range Selector */}
+          <div>
+            <h2 className="text-lg font-medium mb-3">Time Range</h2>
+            <TimeRangeSelector 
+              startDate={startDate}
+              endDate={endDate}
+              onRangeChange={handleTimeRangeChange}
+            />
           </div>
           
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-medium mb-3">ML Insights</h2>
-            <MLInsights />
+          {/* Filters */}
+          <div>
+            <h2 className="text-lg font-medium mb-3">Process Filters</h2>
+            <FilterPanel onFilterChange={handleFilterChange} />
+          </div>
+          
+          {/* Metrics */}
+          <div>
+            <h2 className="text-lg font-medium mb-3">Process Metrics</h2>
+            <MetricsOverview metrics={metrics} />
+          </div>
+          
+          {/* Products and ML Insights section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <h2 className="text-lg font-medium mb-3">Product List</h2>
+              <ProductsList products={products} onSelectProduct={handleSelectProduct} />
+            </div>
+            
+            <div className="lg:col-span-1">
+              <h2 className="text-lg font-medium mb-3">ML Insights</h2>
+              <MLInsights />
+            </div>
           </div>
         </div>
+        
+        {/* Product Detail Modal */}
+        <ProductDetail 
+          product={selectedProduct} 
+          isOpen={selectedProductId !== null}
+          onClose={handleCloseProductDetail}
+        />
       </div>
-      
-      {/* Product Detail Modal */}
-      <ProductDetail 
-        product={selectedProduct} 
-        isOpen={selectedProductId !== null}
-        onClose={handleCloseProductDetail}
-      />
+      <Footer />
     </div>
   );
 };
