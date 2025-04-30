@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { FilterPanel, FilterState } from "./FilterPanel";
 import { TimeRangeSelector } from "./TimeRangeSelector";
@@ -91,7 +92,7 @@ export const Dashboard = () => {
         </div>
         
         <div className="space-y-4">
-          {/* Time Range Selector */}
+          {/* Time Range Selector with Timezone */}
           <div>
             <h2 className="text-lg font-medium mb-3">Time Range</h2>
             <TimeRangeSelector 

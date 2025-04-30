@@ -4,8 +4,32 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface TimeZone {
+  value: string;
+  label: string;
+  offset: string;
+}
+
+const timeZones: TimeZone[] = [
+  { value: "UTC", label: "UTC", offset: "+00:00" },
+  { value: "America/New_York", label: "New York", offset: "-05:00" },
+  { value: "America/Los_Angeles", label: "Los Angeles", offset: "-08:00" },
+  { value: "Europe/London", label: "London", offset: "+00:00" },
+  { value: "Europe/Paris", label: "Paris", offset: "+01:00" },
+  { value: "Asia/Tokyo", label: "Tokyo", offset: "+09:00" },
+  { value: "Asia/Shanghai", label: "Shanghai", offset: "+08:00" },
+  { value: "Australia/Sydney", label: "Sydney", offset: "+10:00" },
+];
 
 interface TimeRangeSelectorProps {
   startDate: Date;
@@ -17,6 +41,7 @@ export const TimeRangeSelector = ({ startDate, endDate, onRangeChange }: TimeRan
   const [start, setStart] = React.useState<Date | undefined>(startDate);
   const [end, setEnd] = React.useState<Date | undefined>(endDate);
   const [calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
+  const [timezone, setTimezone] = React.useState<string>("UTC");
 
   const handleRangeSelect = (date: Date | undefined) => {
     if (!date) return;
@@ -59,6 +84,12 @@ export const TimeRangeSelector = ({ startDate, endDate, onRangeChange }: TimeRan
     onRangeChange(start, end);
   };
 
+  const handleTimezoneChange = (newTimezone: string) => {
+    setTimezone(newTimezone);
+    // You could implement conversion of dates to the new timezone here
+    // For now, we just update the display timezone
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
       <div className="flex space-x-2">
@@ -75,7 +106,7 @@ export const TimeRangeSelector = ({ startDate, endDate, onRangeChange }: TimeRan
         ))}
       </div>
       
-      <div>
+      <div className="flex items-center gap-2">
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="text-xs md:text-sm flex items-center">
@@ -110,6 +141,24 @@ export const TimeRangeSelector = ({ startDate, endDate, onRangeChange }: TimeRan
             />
           </PopoverContent>
         </Popover>
+
+        <div className="flex items-center">
+          <Select value={timezone} onValueChange={handleTimezoneChange}>
+            <SelectTrigger className="w-[180px] text-xs md:text-sm">
+              <div className="flex items-center">
+                <Clock className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Select timezone" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {timeZones.map((tz) => (
+                <SelectItem key={tz.value} value={tz.value}>
+                  {tz.label} ({tz.offset})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
