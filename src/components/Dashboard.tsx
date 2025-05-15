@@ -1,21 +1,16 @@
 
 import React, { useState, useEffect } from "react";
-import { FilterPanel, FilterState } from "./FilterPanel";
-import { TimeRangeSelector } from "./TimeRangeSelector";
-import { MetricsOverview } from "./MetricsOverview";
-import { ProductsList } from "./ProductsList";
-import { ProductDetail } from "./ProductDetail";
-import { MLInsights } from "./MLInsights";
-import { getFilteredProducts, getMetrics, productDetails } from "@/utils/mockData";
+import { FilterState } from "./FilterPanel";
+import { getFilteredProducts, getMetrics } from "@/utils/mockData";
 import { subDays } from "date-fns";
-import { Link } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Brain, BarChart, Bell } from "lucide-react";
-import { Header } from "./Header";
+import { Header } from "./HeaderWithAlert";
 import { Footer } from "./Footer";
-import { AlertBanner, AlertData } from "./AlertBanner";
 import { useToast } from "@/hooks/use-toast";
-import { setGlobalAlert, checkProductsForAlerts } from "@/utils/alertUtils";
+import { AlertData } from "./AlertBanner";
+import { DashboardAlerts, checkStatusForAlerts } from "./DashboardAlerts";
+import { DashboardTimeFilters } from "./DashboardTimeFilters";
+import { DashboardNavigation } from "./DashboardNavigation";
+import { DashboardContent } from "./DashboardContent";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -57,65 +52,18 @@ export const Dashboard = () => {
     setMetrics(getMetrics(filteredProducts));
     
     // Example of adding alerts based on status
-    checkStatusForAlerts(filteredProducts);
-    
-    // Check products against alert configurations
-    checkProductsForAlerts(filteredProducts, (alert) => {
-      setGlobalAlert(alert);
-      setAlerts(prevAlerts => [...prevAlerts, alert]);
-    });
-  }, [filters, startDate, endDate]);
-
-  const checkStatusForAlerts = (products: any[]) => {
-    // Clear existing alerts to prevent duplicates
-    const newAlerts: AlertData[] = [];
-    
-    // Check for failures
-    const failedProducts = products.filter(p => p.status === 'Failed');
-    if (failedProducts.length > 2) {
-      newAlerts.push({
-        id: `failed-${Date.now()}`,
-        title: 'High Failure Rate',
-        message: `${failedProducts.length} products failed in the selected time period.`,
-        type: 'error',
-        timestamp: new Date()
-      });
-    }
-    
-    // Check for machine warnings
-    const machineWarnings = products.filter(p => p.controllerStatus === 'Warning');
-    if (machineWarnings.length > 0) {
-      newAlerts.push({
-        id: `warning-${Date.now()}`,
-        title: 'Machine Warning',
-        message: `${machineWarnings.length} machine warnings detected.`,
-        type: 'warning',
-        timestamp: new Date()
-      });
-    }
-    
-    // Check for AI model retraining needed
-    const aiNeedsRetraining = products.some(p => p.aiStatus === 'NeedsRetraining');
-    if (aiNeedsRetraining) {
-      newAlerts.push({
-        id: `ai-${Date.now()}`,
-        title: 'AI Model Update Required',
-        message: 'One or more AI models need retraining with new data.',
-        type: 'info',
-        timestamp: new Date()
-      });
-    }
+    const statusAlerts = checkStatusForAlerts(filteredProducts);
     
     // Only update alerts if there are changes
-    if (newAlerts.length > 0) {
+    if (statusAlerts.length > 0) {
       setAlerts(prevAlerts => {
         // Filter out duplicates based on title
         const existingTitles = prevAlerts.map(alert => alert.title);
-        const uniqueNewAlerts = newAlerts.filter(alert => !existingTitles.includes(alert.title));
+        const uniqueNewAlerts = statusAlerts.filter(alert => !existingTitles.includes(alert.title));
         return [...prevAlerts, ...uniqueNewAlerts];
       });
     }
-  };
+  }, [filters, startDate, endDate]);
 
   const handleTimeRangeChange = (start: Date, end: Date) => {
     setStartDate(start);
@@ -144,8 +92,6 @@ export const Dashboard = () => {
       return newAlerts;
     });
   };
-
-  const selectedProduct = selectedProductId ? productDetails[selectedProductId] : null;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -153,73 +99,32 @@ export const Dashboard = () => {
       <div className="container py-6 mx-auto space-y-6 flex-grow">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
-          <div className="flex gap-2">
-            <Link to="/kpi-dashboard">
-              <Button variant="outline" className="gap-2">
-                <BarChart className="h-4 w-4" />
-                KPI Dashboard
-              </Button>
-            </Link>
-            <Link to="/ai-modeling">
-              <Button variant="outline" className="gap-2">
-                <Brain className="h-4 w-4" />
-                AI Modeling Platform
-              </Button>
-            </Link>
-            <Link to="/alerts">
-              <Button variant="outline" className="gap-2">
-                <Bell className="h-4 w-4" />
-                Manage Alerts
-              </Button>
-            </Link>
-          </div>
+          <DashboardNavigation />
         </div>
         
         {/* Alert Banner */}
-        <AlertBanner alerts={alerts} onDismiss={handleDismissAlert} />
+        <DashboardAlerts 
+          products={products}
+          alerts={alerts} 
+          onDismissAlert={handleDismissAlert} 
+        />
         
-        <div className="space-y-4">
-          {/* Time Range Selector with Timezone */}
-          <div>
-            <h2 className="text-lg font-medium mb-3">Time Range</h2>
-            <TimeRangeSelector 
-              startDate={startDate}
-              endDate={endDate}
-              onRangeChange={handleTimeRangeChange}
-            />
-          </div>
-          
-          {/* Filters */}
-          <div>
-            <h2 className="text-lg font-medium mb-3">Process Filters</h2>
-            <FilterPanel onFilterChange={handleFilterChange} />
-          </div>
-          
-          {/* Metrics */}
-          <div>
-            <h2 className="text-lg font-medium mb-3">Process Metrics</h2>
-            <MetricsOverview metrics={metrics} />
-          </div>
-          
-          {/* Products and ML Insights section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <h2 className="text-lg font-medium mb-3">Product List</h2>
-              <ProductsList products={products} onSelectProduct={handleSelectProduct} />
-            </div>
-            
-            <div className="lg:col-span-1">
-              <h2 className="text-lg font-medium mb-3">ML Insights</h2>
-              <MLInsights />
-            </div>
-          </div>
-        </div>
+        {/* Time Filters */}
+        <DashboardTimeFilters
+          startDate={startDate}
+          endDate={endDate}
+          filters={filters}
+          onTimeRangeChange={handleTimeRangeChange}
+          onFilterChange={handleFilterChange}
+        />
         
-        {/* Product Detail Modal */}
-        <ProductDetail 
-          product={selectedProduct} 
-          isOpen={selectedProductId !== null}
-          onClose={handleCloseProductDetail}
+        {/* Dashboard Content */}
+        <DashboardContent
+          products={products}
+          metrics={metrics}
+          onSelectProduct={handleSelectProduct}
+          selectedProductId={selectedProductId}
+          onCloseProductDetail={handleCloseProductDetail}
         />
       </div>
       <Footer />
