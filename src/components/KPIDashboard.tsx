@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TimeRangeSelector } from "./TimeRangeSelector";
 import { FilterPanel, FilterState } from "./FilterPanel";
@@ -10,6 +10,7 @@ import {
   Activity,
   Package,
   Gauge,
+  AlertCircle
 } from "lucide-react";
 import { subDays } from "date-fns";
 import { Logo } from "./Logo";
@@ -18,6 +19,10 @@ import { KPICard } from "./kpi/KPICard";
 import { ProductionCharts } from "./kpi/ProductionCharts";
 import { Recommendations } from "./kpi/Recommendations";
 import { Footer } from "./Footer";
+import { createAlert, setGlobalAlert } from "@/utils/alertUtils";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { Badge } from "./ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 const productionData = [
   { name: 'Jan', production: 4000, target: 4500, efficiency: 89 },
@@ -50,6 +55,11 @@ export const KPIDashboard = () => {
     aiStatus: null,
     serialNumber: null, // Add the serialNumber property to match FilterState interface
   });
+
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"info" | "warning" | "error" | "success">("info");
+  const { toast } = useToast();
   
   const handleTimeRangeChange = (start: Date, end: Date) => {
     setStartDate(start);
@@ -79,6 +89,31 @@ export const KPIDashboard = () => {
   const passRate = 0.95;
   const oeeValue = Math.round((passRate * 0.9 * 0.95) * 100);
 
+  // Create and send a global alert
+  const handleCreateAlert = () => {
+    if (!alertTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Alert title is required",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newAlert = createAlert(alertTitle, alertMessage, alertType);
+    setGlobalAlert(newAlert);
+    
+    toast({
+      title: "Alert created",
+      description: "Alert will be displayed on the main dashboard"
+    });
+    
+    // Reset form
+    setAlertTitle("");
+    setAlertMessage("");
+    setAlertType("info");
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="container py-6 mx-auto space-y-6 flex-grow">
@@ -97,6 +132,71 @@ export const KPIDashboard = () => {
             textSize="text-xl"
             className="text-primary"
           />
+        </div>
+        
+        <div className="flex justify-end mb-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Create Alert
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Alert</DialogTitle>
+                <DialogDescription>
+                  Create an alert that will be displayed on the main dashboard.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Alert Type</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(["info", "warning", "error", "success"] as const).map((type) => (
+                      <Badge 
+                        key={type}
+                        variant={alertType === type ? "default" : "outline"}
+                        className={`cursor-pointer ${
+                          alertType === type ? "" : "hover:bg-secondary"
+                        }`}
+                        onClick={() => setAlertType(type)}
+                      >
+                        {type}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="title" className="text-sm font-medium">Title</label>
+                  <input
+                    id="title"
+                    value={alertTitle}
+                    onChange={(e) => setAlertTitle(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Alert title"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="message" className="text-sm font-medium">Message</label>
+                  <textarea
+                    id="message"
+                    value={alertMessage}
+                    onChange={(e) => setAlertMessage(e.target.value)}
+                    className="w-full p-2 border rounded-md min-h-[80px]"
+                    placeholder="Alert message details"
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button onClick={handleCreateAlert}>Create Alert</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

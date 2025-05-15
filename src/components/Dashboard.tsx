@@ -13,6 +13,8 @@ import { Button } from "./ui/button";
 import { Brain, BarChart } from "lucide-react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { AlertBanner, AlertData } from "./AlertBanner";
+import { useToast } from "@/hooks/use-toast";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -33,6 +35,8 @@ export const Dashboard = () => {
   const [products, setProducts] = useState(getFilteredProducts(startDate, endDate));
   const [metrics, setMetrics] = useState(getMetrics(products));
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<AlertData[]>([]);
+  const { toast } = useToast();
   
   // Update products and metrics when filters or date range change
   useEffect(() => {
@@ -50,7 +54,61 @@ export const Dashboard = () => {
     );
     setProducts(filteredProducts);
     setMetrics(getMetrics(filteredProducts));
+    
+    // Example of adding alerts based on status
+    checkStatusForAlerts(filteredProducts);
   }, [filters, startDate, endDate]);
+
+  const checkStatusForAlerts = (products: any[]) => {
+    // Clear existing alerts to prevent duplicates
+    const newAlerts: AlertData[] = [];
+    
+    // Check for failures
+    const failedProducts = products.filter(p => p.status === 'Failed');
+    if (failedProducts.length > 2) {
+      newAlerts.push({
+        id: `failed-${Date.now()}`,
+        title: 'High Failure Rate',
+        message: `${failedProducts.length} products failed in the selected time period.`,
+        type: 'error',
+        timestamp: new Date()
+      });
+    }
+    
+    // Check for machine warnings
+    const machineWarnings = products.filter(p => p.controllerStatus === 'Warning');
+    if (machineWarnings.length > 0) {
+      newAlerts.push({
+        id: `warning-${Date.now()}`,
+        title: 'Machine Warning',
+        message: `${machineWarnings.length} machine warnings detected.`,
+        type: 'warning',
+        timestamp: new Date()
+      });
+    }
+    
+    // Check for AI model retraining needed
+    const aiNeedsRetraining = products.some(p => p.aiStatus === 'NeedsRetraining');
+    if (aiNeedsRetraining) {
+      newAlerts.push({
+        id: `ai-${Date.now()}`,
+        title: 'AI Model Update Required',
+        message: 'One or more AI models need retraining with new data.',
+        type: 'info',
+        timestamp: new Date()
+      });
+    }
+    
+    // Only update alerts if there are changes
+    if (newAlerts.length > 0) {
+      setAlerts(prevAlerts => {
+        // Filter out duplicates based on title
+        const existingTitles = prevAlerts.map(alert => alert.title);
+        const uniqueNewAlerts = newAlerts.filter(alert => !existingTitles.includes(alert.title));
+        return [...prevAlerts, ...uniqueNewAlerts];
+      });
+    }
+  };
 
   const handleTimeRangeChange = (start: Date, end: Date) => {
     setStartDate(start);
@@ -67,6 +125,17 @@ export const Dashboard = () => {
   
   const handleCloseProductDetail = () => {
     setSelectedProductId(null);
+  };
+  
+  const handleDismissAlert = (id: string) => {
+    setAlerts(prevAlerts => {
+      const newAlerts = prevAlerts.filter(alert => alert.id !== id);
+      toast({
+        title: "Alert dismissed",
+        description: "You can manage all alerts in the settings panel.",
+      });
+      return newAlerts;
+    });
   };
 
   const selectedProduct = selectedProductId ? productDetails[selectedProductId] : null;
@@ -92,6 +161,9 @@ export const Dashboard = () => {
             </Link>
           </div>
         </div>
+        
+        {/* Alert Banner */}
+        <AlertBanner alerts={alerts} onDismiss={handleDismissAlert} />
         
         <div className="space-y-4">
           {/* Time Range Selector with Timezone */}
