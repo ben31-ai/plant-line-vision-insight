@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TimeRangeSelector } from "./TimeRangeSelector";
@@ -47,6 +48,7 @@ export const KPIDashboard = () => {
     partId: null,
     controllerStatus: null,
     aiStatus: null,
+    serialNumber: null, // Add the serialNumber property to match FilterState interface
   });
   
   const handleTimeRangeChange = (start: Date, end: Date) => {
@@ -67,7 +69,8 @@ export const KPIDashboard = () => {
     filters.programId || undefined,
     filters.partId || undefined,
     filters.controllerStatus || undefined,
-    filters.aiStatus || undefined
+    filters.aiStatus || undefined,
+    filters.serialNumber || undefined // Also pass the serialNumber to getFilteredProducts
   );
   
   const metrics = getMetrics(products);
