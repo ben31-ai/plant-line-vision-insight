@@ -10,11 +10,12 @@ import { getFilteredProducts, getMetrics, productDetails } from "@/utils/mockDat
 import { subDays } from "date-fns";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Brain, BarChart } from "lucide-react";
+import { Brain, BarChart, Bell } from "lucide-react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { AlertBanner, AlertData } from "./AlertBanner";
 import { useToast } from "@/hooks/use-toast";
+import { setGlobalAlert, checkProductsForAlerts } from "@/utils/alertUtils";
 
 export const Dashboard = () => {
   // Default to the last 7 days
@@ -57,6 +58,12 @@ export const Dashboard = () => {
     
     // Example of adding alerts based on status
     checkStatusForAlerts(filteredProducts);
+    
+    // Check products against alert configurations
+    checkProductsForAlerts(filteredProducts, (alert) => {
+      setGlobalAlert(alert);
+      setAlerts(prevAlerts => [...prevAlerts, alert]);
+    });
   }, [filters, startDate, endDate]);
 
   const checkStatusForAlerts = (products: any[]) => {
@@ -157,6 +164,12 @@ export const Dashboard = () => {
               <Button variant="outline" className="gap-2">
                 <Brain className="h-4 w-4" />
                 AI Modeling Platform
+              </Button>
+            </Link>
+            <Link to="/alerts">
+              <Button variant="outline" className="gap-2">
+                <Bell className="h-4 w-4" />
+                Manage Alerts
               </Button>
             </Link>
           </div>
