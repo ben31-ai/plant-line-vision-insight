@@ -212,11 +212,15 @@ export function getFilteredProducts(
   programId?: string,
   partId?: string,
   controllerStatus?: Status,
-  aiStatus?: Status
+  aiStatus?: Status,
+  serialNumber?: string
 ): Product[] {
   return products.filter(product => {
     // Time filter
     if (product.timestamp < timeStart || product.timestamp > timeEnd) return false;
+    
+    // Serial number filter
+    if (serialNumber && !product.serialNumber.toLowerCase().includes(serialNumber.toLowerCase())) return false;
     
     // Optional filters
     if (plantId && product.plantId !== plantId) return false;

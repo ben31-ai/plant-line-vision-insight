@@ -27,6 +27,7 @@ export const Dashboard = () => {
     partId: null,
     controllerStatus: null,
     aiStatus: null,
+    serialNumber: null,
   });
   
   const [products, setProducts] = useState(getFilteredProducts(startDate, endDate));
@@ -44,7 +45,8 @@ export const Dashboard = () => {
       filters.programId || undefined,
       filters.partId || undefined,
       filters.controllerStatus || undefined,
-      filters.aiStatus || undefined
+      filters.aiStatus || undefined,
+      filters.serialNumber || undefined
     );
     setProducts(filteredProducts);
     setMetrics(getMetrics(filteredProducts));

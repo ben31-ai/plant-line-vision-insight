@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Select,
@@ -21,7 +22,8 @@ import {
   Status 
 } from "@/utils/mockData";
 import { Badge } from "@/components/ui/badge";
-import { X, CircleCheck, CircleX, AlertCircle } from "lucide-react";
+import { X, CircleCheck, CircleX, AlertCircle, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void;
@@ -35,6 +37,7 @@ export interface FilterState {
   partId: string | null;
   controllerStatus: Status | null;
   aiStatus: Status | null;
+  serialNumber: string | null;
 }
 
 // Status options with display information
@@ -53,10 +56,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
     partId: null,
     controllerStatus: null,
     aiStatus: null,
+    serialNumber: null,
   });
   
   const [availableLines, setAvailableLines] = useState<Line[]>([]);
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
+  const [serialNumberInput, setSerialNumberInput] = useState<string>("");
   
   // Update available lines based on selected plant
   useEffect(() => {
@@ -110,7 +115,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
       partId: null,
       controllerStatus: null,
       aiStatus: null,
+      serialNumber: null,
     });
+    setSerialNumberInput("");
   };
   
   const getSelectedName = (id: string | null, items: { id: string, name: string }[]): string => {
@@ -121,6 +128,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
   
   const getActiveFiltersCount = (): number => {
     return Object.values(filters).filter(value => value !== null).length;
+  };
+
+  // Handle serial number search
+  const handleSerialNumberSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (serialNumberInput.trim()) {
+      handleFilterChange('serialNumber', serialNumberInput.trim());
+    } else {
+      handleFilterChange('serialNumber', null);
+    }
+  };
+
+  const clearSerialNumberSearch = () => {
+    setSerialNumberInput("");
+    handleFilterChange('serialNumber', null);
   };
 
   // Render status badge with appropriate color
@@ -149,6 +171,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
             </Button>
           )}
         </div>
+        
+        {/* Serial Number Search */}
+        <form onSubmit={handleSerialNumberSearch} className="flex gap-2">
+          <div className="relative flex-1">
+            <Input
+              type="text"
+              placeholder="Search by Serial Number"
+              value={serialNumberInput}
+              onChange={(e) => setSerialNumberInput(e.target.value)}
+              className="pl-8"
+            />
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+          <Button type="submit" size="sm">Search</Button>
+        </form>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Plant Filter */}
@@ -301,6 +338,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
         {/* Active Filters */}
         {getActiveFiltersCount() > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
+            {filters.serialNumber && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Serial: {filters.serialNumber}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={clearSerialNumberSearch}
+                />
+              </Badge>
+            )}
             {filters.plantId && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 Plant: {getSelectedName(filters.plantId, plants)}
