@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FilterState } from "./FilterPanel";
 import { getFilteredProducts, getMetrics } from "@/utils/mockData";
@@ -11,8 +10,11 @@ import { DashboardAlerts, checkStatusForAlerts } from "./DashboardAlerts";
 import { DashboardTimeFilters } from "./DashboardTimeFilters";
 import { DashboardNavigation } from "./DashboardNavigation";
 import { DashboardContent } from "./DashboardContent";
+import { LoadingPage } from "./LoadingPage";
 
 export const Dashboard = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Default to the last 7 days
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date>(new Date());
@@ -33,6 +35,15 @@ export const Dashboard = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const { toast } = useToast();
+  
+  // Simulate loading time
+  useEffect(() => {
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // 2 second loading time
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
   
   // Update products and metrics when filters or date range change
   useEffect(() => {
@@ -92,6 +103,10 @@ export const Dashboard = () => {
       return newAlerts;
     });
   };
+  
+  if (isLoading) {
+    return <LoadingPage />;
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
