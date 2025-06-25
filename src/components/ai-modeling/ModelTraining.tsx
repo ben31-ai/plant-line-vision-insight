@@ -1,11 +1,11 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // Mock data for training jobs with filter information and GitHub SHA
 const mockTrainingJobs = [
@@ -127,6 +127,77 @@ export const ModelTraining: React.FC = () => {
     // In a real app, this would call an API to start training
     alert(`Training requested for Product: ${selectedProduct}, Model Type: ${selectedModelType}`);
   };
+
+  const ModelMetrics = ({ job }: { job: any }) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <h4 className="font-medium">Model Performance</h4>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Accuracy:</span>
+              <span className="font-medium">{job.accuracy}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Precision:</span>
+              <span className="font-medium">92.1%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Recall:</span>
+              <span className="font-medium">94.8%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>F1-Score:</span>
+              <span className="font-medium">93.4%</span>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <h4 className="font-medium">Training Details</h4>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Epochs:</span>
+              <span className="font-medium">150</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Training Time:</span>
+              <span className="font-medium">4h 45m</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Dataset Size:</span>
+              <span className="font-medium">12,450 samples</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Validation Split:</span>
+              <span className="font-medium">20%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <h4 className="font-medium">Configuration</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm bg-gray-50 p-3 rounded-lg">
+          <div className="flex justify-between">
+            <span>Learning Rate:</span>
+            <span className="font-mono">0.001</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Batch Size:</span>
+            <span className="font-mono">32</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Optimizer:</span>
+            <span className="font-mono">Adam</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Loss Function:</span>
+            <span className="font-mono">CrossEntropy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -275,10 +346,26 @@ export const ModelTraining: React.FC = () => {
                 </div>
                 
                 {job.status === "completed" && (
-                  <div className="mt-4">
-                    <Button size="sm" className="w-full sm:w-auto">
-                      <Play className="h-4 w-4 mr-1" /> Deploy Model
-                    </Button>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="outline" className="flex-1">
+                            <BarChart3 className="h-4 w-4 mr-1" />
+                            View Metrics
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>{job.modelName} - Performance Metrics</DialogTitle>
+                          </DialogHeader>
+                          <ModelMetrics job={job} />
+                        </DialogContent>
+                      </Dialog>
+                      <Button size="sm" className="flex-1">
+                        <Play className="h-4 w-4 mr-1" /> Deploy Model
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
