@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code } from "lucide-react";
 
-// Mock data for training jobs
+// Mock data for training jobs with filter information and GitHub SHA
 const mockTrainingJobs = [
   {
     id: "job-001",
@@ -18,6 +18,13 @@ const mockTrainingJobs = [
     endTime: "2025-04-01T14:15:00",
     accuracy: 95.2,
     dataset: "plant-a-defects-march-2025",
+    filters: {
+      plant: "Plant A - North",
+      line: "Line 3",
+      station: "Station 7",
+      program: "Program ABC-123"
+    },
+    githubSha: "a1b2c3d4e5f6789012345678901234567890abcd"
   },
   {
     id: "job-002",
@@ -28,6 +35,13 @@ const mockTrainingJobs = [
     endTime: null,
     accuracy: null,
     dataset: "quality-metrics-q1-2025",
+    filters: {
+      plant: "Plant B - South",
+      line: "Line 1",
+      station: "Station 4",
+      program: "Program XYZ-456"
+    },
+    githubSha: "b2c3d4e5f6789012345678901234567890abcde1"
   }
 ];
 
@@ -83,6 +97,10 @@ export const ModelTraining: React.FC = () => {
       hour: "numeric",
       minute: "numeric",
     });
+  };
+
+  const formatSha = (sha: string) => {
+    return sha.substring(0, 7);
   };
 
   const handleStartTraining = () => {
@@ -150,12 +168,64 @@ export const ModelTraining: React.FC = () => {
             <Card key={job.id}>
               <div className={`h-1 ${getStatusColor(job.status)} w-full`}></div>
               <CardContent className="pt-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div className="flex flex-col mb-2 md:mb-0">
                     <h3 className="font-medium">{job.modelName}</h3>
                     <span className="text-sm text-muted-foreground">{job.dataset}</span>
                   </div>
                   {getStatusBadge(job.status)}
+                </div>
+                
+                {/* Filter Information */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                  <h4 className="text-sm font-medium mb-2 flex items-center">
+                    <Settings className="h-4 w-4 mr-1" />
+                    Training Configuration
+                  </h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                    <div className="flex items-center">
+                      <Factory className="h-3 w-3 mr-1 text-blue-500" />
+                      <span className="text-muted-foreground">Plant:</span>
+                      <span className="ml-1 font-medium">{job.filters.plant}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Zap className="h-3 w-3 mr-1 text-green-500" />
+                      <span className="text-muted-foreground">Line:</span>
+                      <span className="ml-1 font-medium">{job.filters.line}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Settings className="h-3 w-3 mr-1 text-orange-500" />
+                      <span className="text-muted-foreground">Station:</span>
+                      <span className="ml-1 font-medium">{job.filters.station}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Code className="h-3 w-3 mr-1 text-purple-500" />
+                      <span className="text-muted-foreground">Program:</span>
+                      <span className="ml-1 font-medium">{job.filters.program}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GitHub SHA */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                  <h4 className="text-sm font-medium mb-2 flex items-center">
+                    <GitBranch className="h-4 w-4 mr-1" />
+                    Model Artifacts
+                  </h4>
+                  <div className="flex items-center text-xs">
+                    <span className="text-muted-foreground">GitHub SHA:</span>
+                    <code className="ml-2 bg-gray-200 px-2 py-1 rounded font-mono text-xs">
+                      {formatSha(job.githubSha)}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-6 px-2 text-xs"
+                      onClick={() => navigator.clipboard.writeText(job.githubSha)}
+                    >
+                      Copy
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="my-4">
