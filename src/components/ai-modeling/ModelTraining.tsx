@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package } from "lucide-react";
 
 // Mock data for training jobs with filter information and GitHub SHA
 const mockTrainingJobs = [
@@ -22,7 +22,8 @@ const mockTrainingJobs = [
       plant: "Plant A - North",
       line: "Line 3",
       station: "Station 7",
-      program: "Program ABC-123"
+      program: "Program ABC-123",
+      part: "Part X-123"
     },
     githubSha: "a1b2c3d4e5f6789012345678901234567890abcd"
   },
@@ -39,9 +40,28 @@ const mockTrainingJobs = [
       plant: "Plant B - South",
       line: "Line 1",
       station: "Station 4",
-      program: "Program XYZ-456"
+      program: "Program XYZ-456",
+      part: "Part Y-456"
     },
     githubSha: "b2c3d4e5f6789012345678901234567890abcde1"
+  },
+  {
+    id: "job-003",
+    modelName: "Anomaly Detection v1.0",
+    status: "queued",
+    progress: 0,
+    startTime: "2025-04-08T08:00:00",
+    endTime: null,
+    accuracy: null,
+    dataset: "anomaly-data-april-2025",
+    filters: {
+      plant: "Plant C - East",
+      line: "Line 2",
+      station: "Station 1",
+      program: "Program DEF-789",
+      part: "Part Z-789"
+    },
+    githubSha: "c3d4e5f6789012345678901234567890abcdef2"
   }
 ];
 
@@ -163,7 +183,7 @@ export const ModelTraining: React.FC = () => {
       <div className="mt-6">
         <h2 className="text-lg font-medium mb-4">Recent Training Jobs</h2>
         
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
           {trainingJobs.map((job) => (
             <Card key={job.id}>
               <div className={`h-1 ${getStatusColor(job.status)} w-full`}></div>
@@ -182,7 +202,7 @@ export const ModelTraining: React.FC = () => {
                     <Settings className="h-4 w-4 mr-1" />
                     Training Configuration
                   </h4>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center">
                       <Factory className="h-3 w-3 mr-1 text-blue-500" />
                       <span className="text-muted-foreground">Plant:</span>
@@ -202,6 +222,11 @@ export const ModelTraining: React.FC = () => {
                       <Code className="h-3 w-3 mr-1 text-purple-500" />
                       <span className="text-muted-foreground">Program:</span>
                       <span className="ml-1 font-medium">{job.filters.program}</span>
+                    </div>
+                    <div className="flex items-center col-span-1 lg:col-span-2">
+                      <Package className="h-3 w-3 mr-1 text-cyan-500" />
+                      <span className="text-muted-foreground">Part:</span>
+                      <span className="ml-1 font-medium">{job.filters.part}</span>
                     </div>
                   </div>
                 </div>
