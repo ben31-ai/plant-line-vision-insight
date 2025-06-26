@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle, TrendingUp, Rocket } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // Mock data for training jobs with multiple models per job
@@ -112,6 +112,56 @@ const mockProducts = [
   { id: "prod-1", name: "Product A" },
   { id: "prod-2", name: "Product B" },
   { id: "prod-3", name: "Product C" },
+];
+
+// Mock data for version tracking by filter combination
+const mockVersionsByFilter = [
+  {
+    filters: {
+      plant: "Plant A - North",
+      line: "Line 3", 
+      station: "Station 7",
+      program: "Program ABC-123",
+      part: "Part X-123"
+    },
+    latestTrained: {
+      version: "v1.3",
+      modelName: "Defect Detection v1.3 - EfficientNet",
+      accuracy: 96.1,
+      trainedDate: "2025-04-01T14:15:00",
+      githubSha: "c1d2e3f4g5h6"
+    },
+    latestDeployed: {
+      version: "v1.3", 
+      modelName: "Defect Detection v1.3 - ResNet",
+      accuracy: 93.8,
+      deployedDate: "2025-04-01T15:30:00",
+      githubSha: "b1c2d3e4f5g6"
+    }
+  },
+  {
+    filters: {
+      plant: "Plant B - South",
+      line: "Line 1",
+      station: "Station 4", 
+      program: "Program XYZ-456",
+      part: "Part Y-456"
+    },
+    latestTrained: {
+      version: "v2.1",
+      modelName: "Quality Prediction v2.1 - LSTM",
+      accuracy: null, // Still training
+      trainedDate: "2025-04-06T11:45:00",
+      githubSha: "d2e3f4g5h6i7"
+    },
+    latestDeployed: {
+      version: "v2.0",
+      modelName: "Quality Prediction v2.0 - LSTM", 
+      accuracy: 89.2,
+      deployedDate: "2025-03-20T10:00:00",
+      githubSha: "e3f4g5h6i7j8"
+    }
+  }
 ];
 
 export const ModelTraining: React.FC = () => {
@@ -260,6 +310,149 @@ export const ModelTraining: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Version Status Overview */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Model Version Status by Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {mockVersionsByFilter.map((config, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                {/* Configuration Details */}
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <h4 className="text-sm font-medium mb-2 flex items-center">
+                    <Settings className="h-4 w-4 mr-1" />
+                    Configuration
+                  </h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                    <div className="flex items-center">
+                      <Factory className="h-3 w-3 mr-1 text-blue-500" />
+                      <span className="text-muted-foreground">Plant:</span>
+                      <span className="ml-1 font-medium">{config.filters.plant}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Zap className="h-3 w-3 mr-1 text-green-500" />
+                      <span className="text-muted-foreground">Line:</span>
+                      <span className="ml-1 font-medium">{config.filters.line}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Settings className="h-3 w-3 mr-1 text-orange-500" />
+                      <span className="text-muted-foreground">Station:</span>
+                      <span className="ml-1 font-medium">{config.filters.station}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Code className="h-3 w-3 mr-1 text-purple-500" />
+                      <span className="text-muted-foreground">Program:</span>
+                      <span className="ml-1 font-medium">{config.filters.program}</span>
+                    </div>
+                    <div className="flex items-center col-span-2 lg:col-span-1">
+                      <Package className="h-3 w-3 mr-1 text-cyan-500" />
+                      <span className="text-muted-foreground">Part:</span>
+                      <span className="ml-1 font-medium">{config.filters.part}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Version Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Latest Trained */}
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <h5 className="text-sm font-medium mb-2 flex items-center text-blue-700">
+                      <Brain className="h-4 w-4 mr-1" />
+                      Latest Trained
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Version:</span>
+                        <Badge variant="outline" className="text-blue-700 border-blue-300">
+                          {config.latestTrained.version}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Model:</span>
+                        <span className="font-medium text-xs">{config.latestTrained.modelName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Accuracy:</span>
+                        <span className="font-medium">
+                          {config.latestTrained.accuracy ? `${config.latestTrained.accuracy}%` : "Training..."}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Date:</span>
+                        <span className="font-medium">{formatDate(config.latestTrained.trainedDate)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center">
+                          <GitBranch className="h-3 w-3 mr-1" />
+                          SHA:
+                        </span>
+                        <code className="bg-gray-200 px-1 rounded font-mono text-xs">
+                          {formatSha(config.latestTrained.githubSha)}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Latest Deployed */}
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <h5 className="text-sm font-medium mb-2 flex items-center text-green-700">
+                      <Rocket className="h-4 w-4 mr-1" />
+                      Latest Deployed
+                    </h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Version:</span>
+                        <Badge variant="outline" className="text-green-700 border-green-300">
+                          {config.latestDeployed.version}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Model:</span>
+                        <span className="font-medium text-xs">{config.latestDeployed.modelName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Accuracy:</span>
+                        <span className="font-medium">{config.latestDeployed.accuracy}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Date:</span>
+                        <span className="font-medium">{formatDate(config.latestDeployed.deployedDate)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center">
+                          <GitBranch className="h-3 w-3 mr-1" />
+                          SHA:
+                        </span>
+                        <code className="bg-gray-200 px-1 rounded font-mono text-xs">
+                          {formatSha(config.latestDeployed.githubSha)}
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Version Comparison */}
+                {config.latestTrained.version !== config.latestDeployed.version && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div className="flex items-center text-amber-700 text-sm">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <span className="font-medium">
+                        Newer version available: {config.latestTrained.version} is trained but {config.latestDeployed.version} is deployed
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Train New Model</CardTitle>
