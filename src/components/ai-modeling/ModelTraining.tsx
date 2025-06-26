@@ -1,9 +1,7 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -361,16 +359,6 @@ export const ModelTraining: React.FC = () => {
                       <span className="ml-1 font-medium">{job.filters.part}</span>
                     </div>
                   </div>
-                </div>
-                
-                <div className="my-4">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">{job.progress}%</span>
-                    {job.models.length > 0 && (
-                      <span className="text-sm font-medium">{job.models.length} Models Generated</span>
-                    )}
-                  </div>
-                  <Progress value={job.progress} />
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
