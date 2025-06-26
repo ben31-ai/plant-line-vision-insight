@@ -1,22 +1,22 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3 } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-// Mock data for training jobs with filter information and GitHub SHA
+// Mock data for training jobs with multiple models per job
 const mockTrainingJobs = [
   {
     id: "job-001",
-    modelName: "Defect Detection v1.3",
+    jobName: "Plant A Defect Detection Training",
     status: "completed",
     progress: 100,
     startTime: "2025-04-01T09:30:00",
     endTime: "2025-04-01T14:15:00",
-    accuracy: 95.2,
     dataset: "plant-a-defects-march-2025",
     filters: {
       plant: "Plant A - North",
@@ -25,16 +25,49 @@ const mockTrainingJobs = [
       program: "Program ABC-123",
       part: "Part X-123"
     },
-    githubSha: "a1b2c3d4e5f6789012345678901234567890abcd"
+    models: [
+      {
+        id: "model-001-1",
+        name: "Defect Detection v1.3 - CNN",
+        type: "CNN",
+        accuracy: 95.2,
+        precision: 92.1,
+        recall: 94.8,
+        f1Score: 93.4,
+        githubSha: "a1b2c3d4e5f6789012345678901234567890abcd",
+        isDeployed: false
+      },
+      {
+        id: "model-001-2", 
+        name: "Defect Detection v1.3 - ResNet",
+        type: "ResNet",
+        accuracy: 93.8,
+        precision: 90.5,
+        recall: 96.2,
+        f1Score: 93.3,
+        githubSha: "b1c2d3e4f5g6789012345678901234567890bcde",
+        isDeployed: true
+      },
+      {
+        id: "model-001-3",
+        name: "Defect Detection v1.3 - EfficientNet",
+        type: "EfficientNet", 
+        accuracy: 96.1,
+        precision: 94.2,
+        recall: 97.8,
+        f1Score: 96.0,
+        githubSha: "c1d2e3f4g5h6789012345678901234567890cdef",
+        isDeployed: false
+      }
+    ]
   },
   {
     id: "job-002",
-    modelName: "Quality Prediction v2.1",
+    jobName: "Quality Prediction Training",
     status: "in-progress",
     progress: 68,
     startTime: "2025-04-06T11:45:00",
     endTime: null,
-    accuracy: null,
     dataset: "quality-metrics-q1-2025",
     filters: {
       plant: "Plant B - South",
@@ -43,16 +76,27 @@ const mockTrainingJobs = [
       program: "Program XYZ-456",
       part: "Part Y-456"
     },
-    githubSha: "b2c3d4e5f6789012345678901234567890abcde1"
+    models: [
+      {
+        id: "model-002-1",
+        name: "Quality Prediction v2.1 - LSTM",
+        type: "LSTM",
+        accuracy: null,
+        precision: null,
+        recall: null,
+        f1Score: null,
+        githubSha: "d2e3f4g5h6i7789012345678901234567890defg",
+        isDeployed: false
+      }
+    ]
   },
   {
     id: "job-003",
-    modelName: "Anomaly Detection v1.0",
+    jobName: "Anomaly Detection Training",
     status: "queued",
     progress: 0,
     startTime: "2025-04-08T08:00:00",
     endTime: null,
-    accuracy: null,
     dataset: "anomaly-data-april-2025",
     filters: {
       plant: "Plant C - East",
@@ -61,7 +105,7 @@ const mockTrainingJobs = [
       program: "Program DEF-789",
       part: "Part Z-789"
     },
-    githubSha: "c3d4e5f6789012345678901234567890abcdef2"
+    models: []
   }
 ];
 
@@ -128,7 +172,24 @@ export const ModelTraining: React.FC = () => {
     alert(`Training requested for Product: ${selectedProduct}, Model Type: ${selectedModelType}`);
   };
 
-  const ModelMetrics = ({ job }: { job: any }) => (
+  const handleDeployModel = (jobId: string, modelId: string, modelName: string) => {
+    // Update the deployment status
+    setTrainingJobs(prev => prev.map(job => 
+      job.id === jobId 
+        ? {
+            ...job,
+            models: job.models.map(model => 
+              model.id === modelId 
+                ? { ...model, isDeployed: true }
+                : model
+            )
+          }
+        : job
+    ));
+    alert(`Deploying model: ${modelName}`);
+  };
+
+  const ModelMetrics = ({ model }: { model: any }) => (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -136,25 +197,29 @@ export const ModelTraining: React.FC = () => {
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
               <span>Accuracy:</span>
-              <span className="font-medium">{job.accuracy}%</span>
+              <span className="font-medium">{model.accuracy}%</span>
             </div>
             <div className="flex justify-between">
               <span>Precision:</span>
-              <span className="font-medium">92.1%</span>
+              <span className="font-medium">{model.precision}%</span>
             </div>
             <div className="flex justify-between">
               <span>Recall:</span>
-              <span className="font-medium">94.8%</span>
+              <span className="font-medium">{model.recall}%</span>
             </div>
             <div className="flex justify-between">
               <span>F1-Score:</span>
-              <span className="font-medium">93.4%</span>
+              <span className="font-medium">{model.f1Score}%</span>
             </div>
           </div>
         </div>
         <div className="space-y-2">
           <h4 className="font-medium">Training Details</h4>
           <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Model Type:</span>
+              <span className="font-medium">{model.type}</span>
+            </div>
             <div className="flex justify-between">
               <span>Epochs:</span>
               <span className="font-medium">150</span>
@@ -166,10 +231,6 @@ export const ModelTraining: React.FC = () => {
             <div className="flex justify-between">
               <span>Dataset Size:</span>
               <span className="font-medium">12,450 samples</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Validation Split:</span>
-              <span className="font-medium">20%</span>
             </div>
           </div>
         </div>
@@ -254,14 +315,14 @@ export const ModelTraining: React.FC = () => {
       <div className="mt-6">
         <h2 className="text-lg font-medium mb-4">Recent Training Jobs</h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
           {trainingJobs.map((job) => (
             <Card key={job.id}>
               <div className={`h-1 ${getStatusColor(job.status)} w-full`}></div>
               <CardContent className="pt-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div className="flex flex-col mb-2 md:mb-0">
-                    <h3 className="font-medium">{job.modelName}</h3>
+                    <h3 className="font-medium">{job.jobName}</h3>
                     <span className="text-sm text-muted-foreground">{job.dataset}</span>
                   </div>
                   {getStatusBadge(job.status)}
@@ -301,40 +362,18 @@ export const ModelTraining: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* GitHub SHA */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <h4 className="text-sm font-medium mb-2 flex items-center">
-                    <GitBranch className="h-4 w-4 mr-1" />
-                    Model Artifacts
-                  </h4>
-                  <div className="flex items-center text-xs">
-                    <span className="text-muted-foreground">GitHub SHA:</span>
-                    <code className="ml-2 bg-gray-200 px-2 py-1 rounded font-mono text-xs">
-                      {formatSha(job.githubSha)}
-                    </code>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2 h-6 px-2 text-xs"
-                      onClick={() => navigator.clipboard.writeText(job.githubSha)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </div>
                 
                 <div className="my-4">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium">{job.progress}%</span>
-                    {job.accuracy && (
-                      <span className="text-sm font-medium">Accuracy: {job.accuracy}%</span>
+                    {job.models.length > 0 && (
+                      <span className="text-sm font-medium">{job.models.length} Models Generated</span>
                     )}
                   </div>
                   <Progress value={job.progress} />
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Started:</span>
                     <span>{formatDate(job.startTime)}</span>
@@ -344,28 +383,88 @@ export const ModelTraining: React.FC = () => {
                     <span>{formatDate(job.endTime)}</span>
                   </div>
                 </div>
-                
-                {job.status === "completed" && (
-                  <div className="mt-4 space-y-2">
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <BarChart3 className="h-4 w-4 mr-1" />
-                            View Metrics
+
+                {/* Individual Models Section */}
+                {job.status === "completed" && job.models.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium border-t pt-4">Generated Models</h4>
+                    {job.models.map((model) => (
+                      <div key={model.id} className="bg-white border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h5 className="font-medium text-sm">{model.name}</h5>
+                            <p className="text-xs text-muted-foreground">Type: {model.type}</p>
+                          </div>
+                          {model.isDeployed && (
+                            <Badge className="bg-green-500">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Deployed
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {model.accuracy && (
+                          <div className="grid grid-cols-2 gap-4 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Accuracy:</span>
+                              <span className="font-medium">{model.accuracy}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">F1-Score:</span>
+                              <span className="font-medium">{model.f1Score}%</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* GitHub SHA */}
+                        <div className="bg-gray-50 rounded p-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center">
+                              <GitBranch className="h-3 w-3 mr-1" />
+                              <span className="text-muted-foreground">SHA:</span>
+                              <code className="ml-1 bg-gray-200 px-1 rounded font-mono">
+                                {formatSha(model.githubSha)}
+                              </code>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 px-2 text-xs"
+                              onClick={() => navigator.clipboard.writeText(model.githubSha)}
+                            >
+                              Copy
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="flex-1 text-xs">
+                                <BarChart3 className="h-3 w-3 mr-1" />
+                                View Metrics
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>{model.name} - Performance Metrics</DialogTitle>
+                              </DialogHeader>
+                              <ModelMetrics model={model} />
+                            </DialogContent>
+                          </Dialog>
+                          
+                          <Button 
+                            size="sm" 
+                            className="flex-1 text-xs"
+                            disabled={model.isDeployed}
+                            onClick={() => handleDeployModel(job.id, model.id, model.name)}
+                          >
+                            <Play className="h-3 w-3 mr-1" />
+                            {model.isDeployed ? "Deployed" : "Deploy"}
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>{job.modelName} - Performance Metrics</DialogTitle>
-                          </DialogHeader>
-                          <ModelMetrics job={job} />
-                        </DialogContent>
-                      </Dialog>
-                      <Button size="sm" className="flex-1">
-                        <Play className="h-4 w-4 mr-1" /> Deploy Model
-                      </Button>
-                    </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
