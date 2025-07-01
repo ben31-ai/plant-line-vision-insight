@@ -5,9 +5,17 @@ import { Button } from "@/components/ui/button";
 import { DeployedModels } from "./ai-modeling/DeployedModels";
 import { ModelTraining } from "./ai-modeling/ModelTraining";
 import { ExternalTools } from "./ai-modeling/ExternalTools";
-import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Footer } from "./Footer";
+import { 
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Home, Brain } from "lucide-react";
 
 export const AIModelingDashboard = () => {
   const [activeTab, setActiveTab] = useState<string>("deployed");
@@ -16,13 +24,26 @@ export const AIModelingDashboard = () => {
     <div className="min-h-screen flex flex-col">
       <div className="container py-6 mx-auto space-y-6 flex-grow">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Link to="/">
-              <Button variant="outline" size="sm" className="gap-1">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
+          <div className="space-y-2">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/" className="flex items-center gap-1">
+                      <Home className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="flex items-center gap-1">
+                    <Brain className="h-4 w-4" />
+                    AI Modeling Platform
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
             <h1 className="text-2xl font-bold">AI Modeling Platform</h1>
           </div>
         </div>
