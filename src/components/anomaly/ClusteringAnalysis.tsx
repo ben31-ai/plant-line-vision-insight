@@ -4,15 +4,15 @@ import { EChartRenderer } from "../charts/EChartRenderer";
 
 interface ClusteringAnalysisProps {
   region: string;
-  timeRange: { start: number; end: number };
 }
 
 export const ClusteringAnalysis: React.FC<ClusteringAnalysisProps> = ({
   region,
-  timeRange,
 }) => {
   const clusteringData = useMemo(() => {
-    // Generate synthetic clustering data based on region and time range
+    // Generate synthetic clustering data based on region
+    // Using a default time range since we removed the time range selector
+    const timeRange = { start: 0, end: 100 };
     const baseData = [];
     const numPoints = 200;
     
@@ -58,7 +58,7 @@ export const ClusteringAnalysis: React.FC<ClusteringAnalysisProps> = ({
     }
     
     return baseData;
-  }, [region, timeRange]);
+  }, [region]);
 
   const chartOptions = {
     tooltip: {
@@ -127,8 +127,7 @@ export const ClusteringAnalysis: React.FC<ClusteringAnalysisProps> = ({
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground">
-        Region: <span className="font-medium capitalize">{region}</span> | 
-        Time Range: <span className="font-medium">{timeRange.start}% - {timeRange.end}%</span>
+        Region: <span className="font-medium capitalize">{region}</span>
       </div>
       <EChartRenderer options={chartOptions} />
     </div>
