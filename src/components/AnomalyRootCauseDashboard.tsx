@@ -19,7 +19,6 @@ import { RegionSelector } from "./anomaly/RegionSelector";
 
 export const AnomalyRootCauseDashboard = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
-  const [timeRange, setTimeRange] = useState<{ start: number; end: number }>({ start: 0, end: 100 });
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -49,7 +48,7 @@ export const AnomalyRootCauseDashboard = () => {
           </div>
         </div>
 
-        {/* Region and Time Range Selector */}
+        {/* Region Selector */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -61,8 +60,6 @@ export const AnomalyRootCauseDashboard = () => {
             <RegionSelector 
               selectedRegion={selectedRegion}
               onRegionChange={setSelectedRegion}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
             />
           </CardContent>
         </Card>
@@ -78,7 +75,6 @@ export const AnomalyRootCauseDashboard = () => {
               <CardContent>
                 <ClusteringAnalysis 
                   region={selectedRegion}
-                  timeRange={timeRange}
                 />
               </CardContent>
             </Card>
@@ -88,7 +84,6 @@ export const AnomalyRootCauseDashboard = () => {
           <div className="lg:col-span-1">
             <RootCausePanel 
               region={selectedRegion}
-              timeRange={timeRange}
             />
           </div>
         </div>

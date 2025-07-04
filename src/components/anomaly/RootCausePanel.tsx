@@ -7,12 +7,10 @@ import { AlertTriangle, TrendingUp, Thermometer, Zap, Settings } from "lucide-re
 
 interface RootCausePanelProps {
   region: string;
-  timeRange: { start: number; end: number };
 }
 
 export const RootCausePanel: React.FC<RootCausePanelProps> = ({
   region,
-  timeRange,
 }) => {
   const rootCauseAnalysis = useMemo(() => {
     // Generate root cause analysis based on region
@@ -117,10 +115,6 @@ export const RootCausePanel: React.FC<RootCausePanelProps> = ({
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Analysis Region:</span>
             <span className="font-medium capitalize">{region}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Time Coverage:</span>
-            <span className="font-medium">{timeRange.end - timeRange.start}%</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Data Points:</span>
