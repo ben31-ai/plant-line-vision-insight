@@ -150,17 +150,24 @@ export const RootCausePanel: React.FC<RootCausePanelProps> = ({
   }, [region]);
 
   const getProbabilityBadge = (probability: number) => {
-    if (probability >= 80) return { variant: "destructive", label: "Very High" };
+    if (probability >= 80) return { variant: "destructive", label: "Critical" };
     if (probability >= 60) return { variant: "default", label: "High" };
     if (probability >= 40) return { variant: "secondary", label: "Medium" };
-    return { variant: "outline", label: "Low" };
+    return { variant: "outline", label: "Normal" };
   };
 
-  const getProbabilityBgColor = (probability: number) => {
-    if (probability >= 80) return "bg-red-50 border-red-200";
-    if (probability >= 60) return "bg-orange-50 border-orange-200";
-    if (probability >= 40) return "bg-yellow-50 border-yellow-200";
-    return "bg-green-50 border-green-200";
+  const getProbabilityCardStyle = (probability: number) => {
+    if (probability >= 80) return "bg-red-50 border-red-200 shadow-md";
+    if (probability >= 60) return "bg-orange-50 border-orange-200 shadow-sm";
+    if (probability >= 40) return "bg-yellow-50 border-yellow-200 shadow-sm";
+    return "bg-muted/30 border-border shadow-none";
+  };
+
+  const getProbabilityTextStyle = (probability: number) => {
+    if (probability >= 80) return "text-red-900";
+    if (probability >= 60) return "text-orange-900";
+    if (probability >= 40) return "text-yellow-900";
+    return "text-muted-foreground";
   };
 
   return (
@@ -176,15 +183,18 @@ export const RootCausePanel: React.FC<RootCausePanelProps> = ({
           {rootCauseAnalysis.map((item, index) => {
             const Icon = item.icon;
             const probabilityBadge = getProbabilityBadge(item.probability);
+            const cardStyle = getProbabilityCardStyle(item.probability);
+            const textStyle = getProbabilityTextStyle(item.probability);
+            
             return (
               <div
                 key={index}
-                className={`p-4 rounded-lg border ${getProbabilityBgColor(item.probability)}`}
+                className={`p-4 rounded-lg border transition-all ${cardStyle}`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    <span className="font-medium text-sm">{item.cause}</span>
+                    <Icon className={`h-4 w-4 ${textStyle}`} />
+                    <span className={`font-medium text-sm ${textStyle}`}>{item.cause}</span>
                   </div>
                   <Badge variant={probabilityBadge.variant as any} className="text-xs">
                     {probabilityBadge.label}
@@ -196,17 +206,28 @@ export const RootCausePanel: React.FC<RootCausePanelProps> = ({
                     <span>Probability</span>
                     <span>{item.probability}%</span>
                   </div>
-                  <Progress value={item.probability} className="h-2" />
+                  <Progress 
+                    value={item.probability} 
+                    className={`h-2 ${item.probability < 40 ? 'opacity-60' : ''}`}
+                  />
                   
                   <div className="space-y-2">
                     <div>
-                      <h4 className="text-xs font-medium text-muted-foreground mb-1">Description</h4>
-                      <p className="text-xs text-foreground">{item.description}</p>
+                      <h4 className={`text-xs font-medium mb-1 ${item.probability < 40 ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        Description
+                      </h4>
+                      <p className={`text-xs ${item.probability < 40 ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        {item.description}
+                      </p>
                     </div>
                     
                     <div>
-                      <h4 className="text-xs font-medium text-muted-foreground mb-1">Recommended Action</h4>
-                      <p className="text-xs text-foreground">{item.action}</p>
+                      <h4 className={`text-xs font-medium mb-1 ${item.probability < 40 ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        {item.probability < 40 ? 'Routine Maintenance' : 'Recommended Action'}
+                      </h4>
+                      <p className={`text-xs ${item.probability < 40 ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        {item.action}
+                      </p>
                     </div>
                   </div>
                 </div>
