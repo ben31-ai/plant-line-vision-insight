@@ -37,6 +37,11 @@ interface AlertConfiguration {
   enabled: boolean;
   muted: boolean;
   triggerCount: number;
+  evaluationMode: "perProduct" | "aggregated" | "timeBased";
+  timeInterval?: number; // in minutes
+  aggregationType?: "count" | "average" | "min" | "max" | "percentage";
+  aggregationThreshold?: number; // threshold for aggregated checks
+  lastChecked?: Date;
 }
 
 // Define field types and their available operators
@@ -64,6 +69,30 @@ const operatorLabels = {
 };
 
 const statusOptions = ["Warning", "Error", "OK", "NeedsRetraining"];
+
+const evaluationModeLabels = {
+  perProduct: "Per Product",
+  aggregated: "Aggregated", 
+  timeBased: "Time-based"
+};
+
+const aggregationTypeLabels = {
+  count: "Count",
+  average: "Average",
+  min: "Minimum",
+  max: "Maximum",
+  percentage: "Percentage"
+};
+
+const timeIntervalOptions = [
+  { value: 1, label: "1 minute" },
+  { value: 5, label: "5 minutes" },
+  { value: 15, label: "15 minutes" },
+  { value: 30, label: "30 minutes" },
+  { value: 60, label: "1 hour" },
+  { value: 240, label: "4 hours" },
+  { value: 1440, label: "24 hours" }
+];
 
 // Helper function to get operator icon and styling
 const getOperatorBadge = (operator: string) => {
@@ -105,7 +134,11 @@ export const AlertsPage = () => {
     secondValue: "",
     emails: [""],
     enabled: true,
-    muted: false
+    muted: false,
+    evaluationMode: "perProduct",
+    timeInterval: 5,
+    aggregationType: "count",
+    aggregationThreshold: 1
   });
   const { toast } = useToast();
 
@@ -163,6 +196,24 @@ export const AlertsPage = () => {
       return;
     }
 
+    if (newConfig.evaluationMode === "aggregated" && (newConfig.aggregationThreshold === undefined || newConfig.aggregationThreshold < 1)) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a valid aggregation threshold for aggregated mode.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newConfig.evaluationMode === "timeBased" && (!newConfig.timeInterval || newConfig.timeInterval < 1)) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a valid time interval for time-based mode.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Create a new configuration
     const id = `config-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const completeConfig: AlertConfiguration = {
@@ -176,7 +227,11 @@ export const AlertsPage = () => {
       emails: newConfig.emails || [""],
       enabled: newConfig.enabled ?? true,
       muted: newConfig.muted ?? false,
-      triggerCount: 0
+      triggerCount: 0,
+      evaluationMode: newConfig.evaluationMode || "perProduct",
+      timeInterval: newConfig.timeInterval,
+      aggregationType: newConfig.aggregationType,
+      aggregationThreshold: newConfig.aggregationThreshold
     };
 
     saveAlertConfiguration(completeConfig);
@@ -185,7 +240,7 @@ export const AlertsPage = () => {
     // Create a test alert
     const testAlert = createAlert(
       `${completeConfig.name} Created`, 
-      `Alert configuration has been created to monitor ${completeConfig.type} with condition: ${completeConfig.operator} ${completeConfig.value}${completeConfig.secondValue ? ` and ${completeConfig.secondValue}` : ''}`,
+      `Alert configuration has been created to monitor ${completeConfig.type} in ${completeConfig.evaluationMode} mode`,
       "info"
     );
     setGlobalAlert(testAlert);
@@ -202,7 +257,11 @@ export const AlertsPage = () => {
       secondValue: "",
       emails: [""],
       enabled: true,
-      muted: false
+      muted: false,
+      evaluationMode: "perProduct",
+      timeInterval: 5,
+      aggregationType: "count",
+      aggregationThreshold: 1
     });
 
     toast({
@@ -315,6 +374,16 @@ export const AlertsPage = () => {
     return config.value;
   };
 
+  const handleEvaluationModeChange = (mode: string) => {
+    setNewConfig({
+      ...newConfig,
+      evaluationMode: mode as AlertConfiguration["evaluationMode"],
+      timeInterval: mode === "timeBased" ? 5 : undefined,
+      aggregationType: mode === "aggregated" ? "count" : undefined,
+      aggregationThreshold: mode === "aggregated" ? 1 : undefined
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -343,6 +412,7 @@ export const AlertsPage = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Field</TableHead>
                     <TableHead>Condition</TableHead>
+                    <TableHead>Mode</TableHead>
                     <TableHead>Emails</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-center">Count</TableHead>
@@ -364,6 +434,23 @@ export const AlertsPage = () => {
                           <span className="text-sm text-muted-foreground">
                             {getConditionDescription(config)}
                           </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="secondary">
+                            {evaluationModeLabels[config.evaluationMode]}
+                          </Badge>
+                          {config.evaluationMode === "timeBased" && config.timeInterval && (
+                            <span className="text-xs text-muted-foreground">
+                              Every {config.timeInterval}m
+                            </span>
+                          )}
+                          {config.evaluationMode === "aggregated" && config.aggregationType && (
+                            <span className="text-xs text-muted-foreground">
+                              {aggregationTypeLabels[config.aggregationType]} ≥ {config.aggregationThreshold}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
@@ -481,6 +568,70 @@ export const AlertsPage = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right" htmlFor="evaluationMode">Evaluation Mode</Label>
+              <Select value={newConfig.evaluationMode} onValueChange={handleEvaluationModeChange}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select evaluation mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="perProduct">Per Product - Check each product individually</SelectItem>
+                  <SelectItem value="aggregated">Aggregated - Check across all products</SelectItem>
+                  <SelectItem value="timeBased">Time-based - Check at regular intervals</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {newConfig.evaluationMode === "timeBased" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right" htmlFor="timeInterval">Check Interval</Label>
+                <Select value={newConfig.timeInterval?.toString()} onValueChange={(value) => setNewConfig({...newConfig, timeInterval: parseInt(value)})}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select time interval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeIntervalOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value.toString()}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {newConfig.evaluationMode === "aggregated" && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right" htmlFor="aggregationType">Aggregation Type</Label>
+                  <Select value={newConfig.aggregationType} onValueChange={(value) => setNewConfig({...newConfig, aggregationType: value as AlertConfiguration["aggregationType"]})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select aggregation type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="count">Count of matching products</SelectItem>
+                      <SelectItem value="percentage">Percentage of matching products</SelectItem>
+                      <SelectItem value="average">Average value</SelectItem>
+                      <SelectItem value="min">Minimum value</SelectItem>
+                      <SelectItem value="max">Maximum value</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right" htmlFor="aggregationThreshold">Threshold</Label>
+                  <Input 
+                    id="aggregationThreshold" 
+                    className="col-span-3" 
+                    type="number"
+                    value={newConfig.aggregationThreshold || ''} 
+                    onChange={(e) => setNewConfig({...newConfig, aggregationThreshold: parseFloat(e.target.value)})}
+                    placeholder="Threshold value to trigger alert"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right" htmlFor="operator">Operator</Label>
