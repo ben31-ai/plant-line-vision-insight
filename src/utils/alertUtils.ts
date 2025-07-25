@@ -1,4 +1,3 @@
-
 import { AlertData } from "@/components/AlertBanner";
 
 // In-memory storage for alerts (would normally be stored in context or redux)
@@ -9,8 +8,11 @@ let globalNotificationCount: number = 0;
 interface AlertConfiguration {
   id: string;
   name: string;
-  type: "controllerStatus" | "aiStatus";
+  type: "controllerStatus" | "aiStatus" | "temperature" | "pressure" | "serialNumber" | "partNumber";
   condition: string;
+  operator: string;
+  value: string;
+  secondValue?: string; // for "between" operator
   emails: string[];
   enabled: boolean;
   muted: boolean;
@@ -126,14 +128,19 @@ export function checkProductsForAlerts(
     for (const config of activeConfigs) {
       let shouldTrigger = false;
       
-      // Check controller status
-      if (config.type === "controllerStatus" && product.controllerStatus === config.condition) {
-        shouldTrigger = true;
-      }
-      
-      // Check AI status
-      if (config.type === "aiStatus" && product.aiStatus === config.condition) {
-        shouldTrigger = true;
+      // Check different field types based on operator
+      if (config.type === "controllerStatus") {
+        shouldTrigger = evaluateCondition(product.controllerStatus, config.operator, config.value, config.secondValue);
+      } else if (config.type === "aiStatus") {
+        shouldTrigger = evaluateCondition(product.aiStatus, config.operator, config.value, config.secondValue);
+      } else if (config.type === "temperature") {
+        shouldTrigger = evaluateCondition(product.temperature, config.operator, config.value, config.secondValue);
+      } else if (config.type === "pressure") {
+        shouldTrigger = evaluateCondition(product.pressure, config.operator, config.value, config.secondValue);
+      } else if (config.type === "serialNumber") {
+        shouldTrigger = evaluateCondition(product.serialNumber, config.operator, config.value, config.secondValue);
+      } else if (config.type === "partNumber") {
+        shouldTrigger = evaluateCondition(product.partNumber, config.operator, config.value, config.secondValue);
       }
       
       if (shouldTrigger) {
@@ -144,8 +151,8 @@ export function checkProductsForAlerts(
         if (!config.muted) {
           const alert = createAlert(
             `${config.name} Alert`,
-            `Product ${product.serialNumber} triggered a ${config.condition} alert for ${config.type}`,
-            config.condition === "Error" ? "error" : "warning"
+            `Product ${product.serialNumber} triggered alert for ${config.type}: ${config.operator} ${config.value}${config.secondValue ? ` and ${config.secondValue}` : ''}`,
+            "warning"
           );
           
           alertCallback(alert);
@@ -153,6 +160,32 @@ export function checkProductsForAlerts(
         }
       }
     }
+  }
+}
+
+// Helper function to evaluate conditions based on operator
+function evaluateCondition(fieldValue: any, operator: string, value: string, secondValue?: string): boolean {
+  switch (operator) {
+    case "equal":
+      return fieldValue === value;
+    case "contains":
+      return String(fieldValue).toLowerCase().includes(value.toLowerCase());
+    case "greater":
+      return Number(fieldValue) > Number(value);
+    case "less":
+      return Number(fieldValue) < Number(value);
+    case "greaterOrEqual":
+      return Number(fieldValue) >= Number(value);
+    case "lessOrEqual":
+      return Number(fieldValue) <= Number(value);
+    case "between":
+      if (secondValue) {
+        const numValue = Number(fieldValue);
+        return numValue >= Number(value) && numValue <= Number(secondValue);
+      }
+      return false;
+    default:
+      return false;
   }
 }
 
