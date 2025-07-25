@@ -12,7 +12,7 @@ interface AlertConfiguration {
   condition: string;
   operator: string;
   value: string;
-  secondValue?: string; // for "between" operator
+  secondValue?: string; // for "between" and "notBetween" operators
   emails: string[];
   enabled: boolean;
   muted: boolean;
@@ -165,25 +165,46 @@ export function checkProductsForAlerts(
 
 // Helper function to evaluate conditions based on operator
 function evaluateCondition(fieldValue: any, operator: string, value: string, secondValue?: string): boolean {
+  const fieldStr = String(fieldValue);
+  const fieldNum = Number(fieldValue);
+  
   switch (operator) {
     case "equal":
       return fieldValue === value;
+    case "notEqual":
+      return fieldValue !== value;
     case "contains":
-      return String(fieldValue).toLowerCase().includes(value.toLowerCase());
+      return fieldStr.toLowerCase().includes(value.toLowerCase());
+    case "notContains":
+      return !fieldStr.toLowerCase().includes(value.toLowerCase());
     case "greater":
-      return Number(fieldValue) > Number(value);
+      return fieldNum > Number(value);
     case "less":
-      return Number(fieldValue) < Number(value);
+      return fieldNum < Number(value);
     case "greaterOrEqual":
-      return Number(fieldValue) >= Number(value);
+      return fieldNum >= Number(value);
     case "lessOrEqual":
-      return Number(fieldValue) <= Number(value);
+      return fieldNum <= Number(value);
     case "between":
       if (secondValue) {
-        const numValue = Number(fieldValue);
+        const numValue = fieldNum;
         return numValue >= Number(value) && numValue <= Number(secondValue);
       }
       return false;
+    case "notBetween":
+      if (secondValue) {
+        const numValue = fieldNum;
+        return !(numValue >= Number(value) && numValue <= Number(secondValue));
+      }
+      return false;
+    case "regex":
+      try {
+        const regex = new RegExp(value, 'i');
+        return regex.test(fieldStr);
+      } catch (e) {
+        console.error('Invalid regex pattern:', value);
+        return false;
+      }
     default:
       return false;
   }

@@ -16,7 +16,7 @@ import {
   resetAlertCount
 } from "@/utils/alertUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal } from "lucide-react";
+import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -41,22 +41,26 @@ interface AlertConfiguration {
 
 // Define field types and their available operators
 const fieldTypes = {
-  controllerStatus: { type: "string", operators: ["equal", "contains"] },
-  aiStatus: { type: "string", operators: ["equal", "contains"] },
-  temperature: { type: "number", operators: ["equal", "greater", "less", "lessOrEqual", "greaterOrEqual", "between"] },
-  pressure: { type: "number", operators: ["equal", "greater", "less", "lessOrEqual", "greaterOrEqual", "between"] },
-  serialNumber: { type: "string", operators: ["equal", "contains"] },
-  partNumber: { type: "string", operators: ["equal", "contains"] }
+  controllerStatus: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] },
+  aiStatus: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] },
+  temperature: { type: "number", operators: ["equal", "notEqual", "greater", "less", "lessOrEqual", "greaterOrEqual", "between", "notBetween"] },
+  pressure: { type: "number", operators: ["equal", "notEqual", "greater", "less", "lessOrEqual", "greaterOrEqual", "between", "notBetween"] },
+  serialNumber: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] },
+  partNumber: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] }
 };
 
 const operatorLabels = {
   equal: "Equal to",
+  notEqual: "Not equal to",
   greater: "Greater than",
   less: "Less than",
   lessOrEqual: "Less than or equal to",
   greaterOrEqual: "Greater than or equal to",
   between: "Between",
-  contains: "Contains"
+  notBetween: "Not between",
+  contains: "Contains",
+  notContains: "Does not contain",
+  regex: "Matches regex"
 };
 
 const statusOptions = ["Warning", "Error", "OK", "NeedsRetraining"];
@@ -65,12 +69,16 @@ const statusOptions = ["Warning", "Error", "OK", "NeedsRetraining"];
 const getOperatorBadge = (operator: string) => {
   const operatorConfig = {
     equal: { icon: Equal, variant: "outline" as const, color: "text-blue-600" },
+    notEqual: { icon: X, variant: "outline" as const, color: "text-red-600" },
     greater: { icon: ChevronUp, variant: "outline" as const, color: "text-green-600" },
     less: { icon: ChevronDown, variant: "outline" as const, color: "text-red-600" },
     lessOrEqual: { icon: ChevronLeft, variant: "outline" as const, color: "text-orange-600" },
     greaterOrEqual: { icon: ChevronRight, variant: "outline" as const, color: "text-purple-600" },
     between: { icon: MoreHorizontal, variant: "outline" as const, color: "text-indigo-600" },
-    contains: { icon: Search, variant: "outline" as const, color: "text-gray-600" }
+    notBetween: { icon: EyeOff, variant: "outline" as const, color: "text-indigo-600" },
+    contains: { icon: Search, variant: "outline" as const, color: "text-gray-600" },
+    notContains: { icon: EyeOff, variant: "outline" as const, color: "text-gray-600" },
+    regex: { icon: Code, variant: "outline" as const, color: "text-violet-600" }
   };
 
   const config = operatorConfig[operator as keyof typeof operatorConfig];
@@ -137,10 +145,10 @@ export const AlertsPage = () => {
       return;
     }
 
-    if (newConfig.operator === "between" && !newConfig.secondValue) {
+    if ((newConfig.operator === "between" || newConfig.operator === "notBetween") && !newConfig.secondValue) {
       toast({
         title: "Missing information",
-        description: "Please provide both values for the between condition.",
+        description: "Please provide both values for the between/not between condition.",
         variant: "destructive"
       });
       return;
@@ -292,7 +300,7 @@ export const AlertsPage = () => {
     setNewConfig({
       ...newConfig,
       operator,
-      secondValue: operator === "between" ? "" : undefined
+      secondValue: (operator === "between" || operator === "notBetween") ? "" : undefined
     });
   };
 
@@ -301,7 +309,7 @@ export const AlertsPage = () => {
   };
 
   const getConditionDescription = (config: AlertConfiguration) => {
-    if (config.operator === "between") {
+    if (config.operator === "between" || config.operator === "notBetween") {
       return `${config.value} and ${config.secondValue}`;
     }
     return config.value;
@@ -522,7 +530,7 @@ export const AlertsPage = () => {
               </div>
             )}
 
-            {newConfig.operator === "between" && (
+            {(newConfig.operator === "between" || newConfig.operator === "notBetween") && (
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right" htmlFor="secondValue">Second Value</Label>
                 <Input 
