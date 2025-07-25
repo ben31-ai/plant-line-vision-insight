@@ -16,7 +16,7 @@ import {
   resetAlertCount
 } from "@/utils/alertUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Bell, BellRing, AlertTriangle } from "lucide-react";
+import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,29 @@ const operatorLabels = {
 };
 
 const statusOptions = ["Warning", "Error", "OK", "NeedsRetraining"];
+
+// Helper function to get operator icon and styling
+const getOperatorBadge = (operator: string) => {
+  const operatorConfig = {
+    equal: { icon: Equal, variant: "outline" as const, color: "text-blue-600" },
+    greater: { icon: ChevronUp, variant: "outline" as const, color: "text-green-600" },
+    less: { icon: ChevronDown, variant: "outline" as const, color: "text-red-600" },
+    lessOrEqual: { icon: ChevronLeft, variant: "outline" as const, color: "text-orange-600" },
+    greaterOrEqual: { icon: ChevronRight, variant: "outline" as const, color: "text-purple-600" },
+    between: { icon: MoreHorizontal, variant: "outline" as const, color: "text-indigo-600" },
+    contains: { icon: Search, variant: "outline" as const, color: "text-gray-600" }
+  };
+
+  const config = operatorConfig[operator as keyof typeof operatorConfig];
+  const Icon = config?.icon || Equal;
+  
+  return (
+    <Badge variant={config?.variant || "outline"} className={`${config?.color || "text-gray-600"} gap-1`}>
+      <Icon className="h-3 w-3" />
+      {operatorLabels[operator as keyof typeof operatorLabels] || operator}
+    </Badge>
+  );
+};
 
 export const AlertsPage = () => {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
@@ -278,11 +301,10 @@ export const AlertsPage = () => {
   };
 
   const getConditionDescription = (config: AlertConfiguration) => {
-    const operatorLabel = operatorLabels[config.operator as keyof typeof operatorLabels];
     if (config.operator === "between") {
-      return `${operatorLabel} ${config.value} and ${config.secondValue}`;
+      return `${config.value} and ${config.secondValue}`;
     }
-    return `${operatorLabel} ${config.value}`;
+    return config.value;
   };
 
   return (
@@ -329,8 +351,11 @@ export const AlertsPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[200px]">
-                        <div className="text-sm">
-                          {getConditionDescription(config)}
+                        <div className="flex items-center gap-2">
+                          {getOperatorBadge(config.operator)}
+                          <span className="text-sm text-muted-foreground">
+                            {getConditionDescription(config)}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
