@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -24,17 +23,43 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { getFilteredProducts } from "@/utils/mockData";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AlertConfiguration {
   id: string;
   name: string;
-  type: "controllerStatus" | "aiStatus";
+  type: "controllerStatus" | "aiStatus" | "temperature" | "pressure" | "serialNumber" | "partNumber";
   condition: string;
+  operator: string;
+  value: string;
+  secondValue?: string; // for "between" operator
   emails: string[];
   enabled: boolean;
   muted: boolean;
   triggerCount: number;
 }
+
+// Define field types and their available operators
+const fieldTypes = {
+  controllerStatus: { type: "string", operators: ["equal", "contains"] },
+  aiStatus: { type: "string", operators: ["equal", "contains"] },
+  temperature: { type: "number", operators: ["equal", "greater", "less", "lessOrEqual", "greaterOrEqual", "between"] },
+  pressure: { type: "number", operators: ["equal", "greater", "less", "lessOrEqual", "greaterOrEqual", "between"] },
+  serialNumber: { type: "string", operators: ["equal", "contains"] },
+  partNumber: { type: "string", operators: ["equal", "contains"] }
+};
+
+const operatorLabels = {
+  equal: "Equal to",
+  greater: "Greater than",
+  less: "Less than",
+  lessOrEqual: "Less than or equal to",
+  greaterOrEqual: "Greater than or equal to",
+  between: "Between",
+  contains: "Contains"
+};
+
+const statusOptions = ["Warning", "Error", "OK", "NeedsRetraining"];
 
 export const AlertsPage = () => {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
@@ -44,6 +69,9 @@ export const AlertsPage = () => {
     name: "",
     type: "controllerStatus",
     condition: "Warning",
+    operator: "equal",
+    value: "",
+    secondValue: "",
     emails: [""],
     enabled: true,
     muted: false
@@ -77,6 +105,24 @@ export const AlertsPage = () => {
       return;
     }
 
+    if (!newConfig.value) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a value for the condition.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newConfig.operator === "between" && !newConfig.secondValue) {
+      toast({
+        title: "Missing information",
+        description: "Please provide both values for the between condition.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!newConfig.emails || newConfig.emails.length === 0 || !newConfig.emails[0]) {
       toast({
         title: "Missing information",
@@ -93,6 +139,9 @@ export const AlertsPage = () => {
       name: newConfig.name || "Unnamed Alert",
       type: newConfig.type || "controllerStatus",
       condition: newConfig.condition || "Warning",
+      operator: newConfig.operator || "equal",
+      value: newConfig.value || "",
+      secondValue: newConfig.secondValue || "",
       emails: newConfig.emails || [""],
       enabled: newConfig.enabled ?? true,
       muted: newConfig.muted ?? false,
@@ -105,7 +154,7 @@ export const AlertsPage = () => {
     // Create a test alert
     const testAlert = createAlert(
       `${completeConfig.name} Created`, 
-      `Alert configuration has been created to monitor ${completeConfig.type} for condition: ${completeConfig.condition}`,
+      `Alert configuration has been created to monitor ${completeConfig.type} with condition: ${completeConfig.operator} ${completeConfig.value}${completeConfig.secondValue ? ` and ${completeConfig.secondValue}` : ''}`,
       "info"
     );
     setGlobalAlert(testAlert);
@@ -117,6 +166,9 @@ export const AlertsPage = () => {
       name: "",
       type: "controllerStatus",
       condition: "Warning",
+      operator: "equal",
+      value: "",
+      secondValue: "",
       emails: [""],
       enabled: true,
       muted: false
@@ -199,6 +251,40 @@ export const AlertsPage = () => {
     });
   };
 
+  const handleFieldTypeChange = (type: string) => {
+    const fieldConfig = fieldTypes[type as keyof typeof fieldTypes];
+    const defaultOperator = fieldConfig.operators[0];
+    
+    setNewConfig({
+      ...newConfig, 
+      type: type as AlertConfiguration["type"],
+      operator: defaultOperator,
+      value: "",
+      secondValue: "",
+      condition: type === "controllerStatus" || type === "aiStatus" ? "Warning" : ""
+    });
+  };
+
+  const handleOperatorChange = (operator: string) => {
+    setNewConfig({
+      ...newConfig,
+      operator,
+      secondValue: operator === "between" ? "" : undefined
+    });
+  };
+
+  const getAvailableOperators = (fieldType: string) => {
+    return fieldTypes[fieldType as keyof typeof fieldTypes]?.operators || ["equal"];
+  };
+
+  const getConditionDescription = (config: AlertConfiguration) => {
+    const operatorLabel = operatorLabels[config.operator as keyof typeof operatorLabels];
+    if (config.operator === "between") {
+      return `${operatorLabel} ${config.value} and ${config.secondValue}`;
+    }
+    return `${operatorLabel} ${config.value}`;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -225,7 +311,7 @@ export const AlertsPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Field</TableHead>
                     <TableHead>Condition</TableHead>
                     <TableHead>Emails</TableHead>
                     <TableHead>Status</TableHead>
@@ -239,10 +325,14 @@ export const AlertsPage = () => {
                       <TableCell className="font-medium">{config.name}</TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {config.type === "controllerStatus" ? "Controller Status" : "AI Status"}
+                          {config.type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                         </Badge>
                       </TableCell>
-                      <TableCell>{config.condition}</TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <div className="text-sm">
+                          {getConditionDescription(config)}
+                        </div>
+                      </TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {config.emails.join(", ")}
                       </TableCell>
@@ -327,7 +417,7 @@ export const AlertsPage = () => {
 
       {/* Add Alert Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Create New Alert Configuration</DialogTitle>
           </DialogHeader>
@@ -341,31 +431,86 @@ export const AlertsPage = () => {
                 onChange={(e) => setNewConfig({...newConfig, name: e.target.value})}
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right" htmlFor="type">Type</Label>
-              <select 
-                id="type" 
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={newConfig.type}
-                onChange={(e) => setNewConfig({...newConfig, type: e.target.value as "controllerStatus" | "aiStatus"})}
-              >
-                <option value="controllerStatus">Controller Status</option>
-                <option value="aiStatus">AI Status</option>
-              </select>
+              <Label className="text-right" htmlFor="type">Field</Label>
+              <Select value={newConfig.type} onValueChange={handleFieldTypeChange}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select field to monitor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="controllerStatus">Controller Status</SelectItem>
+                  <SelectItem value="aiStatus">AI Status</SelectItem>
+                  <SelectItem value="temperature">Temperature</SelectItem>
+                  <SelectItem value="pressure">Pressure</SelectItem>
+                  <SelectItem value="serialNumber">Serial Number</SelectItem>
+                  <SelectItem value="partNumber">Part Number</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right" htmlFor="condition">Condition</Label>
-              <select 
-                id="condition" 
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={newConfig.condition}
-                onChange={(e) => setNewConfig({...newConfig, condition: e.target.value})}
-              >
-                <option value="Warning">Warning</option>
-                <option value="Error">Error</option>
-                <option value="NeedsRetraining">Needs Retraining</option>
-              </select>
+              <Label className="text-right" htmlFor="operator">Operator</Label>
+              <Select value={newConfig.operator} onValueChange={handleOperatorChange}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select operator" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableOperators(newConfig.type || "controllerStatus").map(op => (
+                    <SelectItem key={op} value={op}>
+                      {operatorLabels[op as keyof typeof operatorLabels]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {(newConfig.type === "controllerStatus" || newConfig.type === "aiStatus") && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right" htmlFor="condition">Status Value</Label>
+                <Select value={newConfig.value} onValueChange={(value) => setNewConfig({...newConfig, value})}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map(status => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {newConfig.type !== "controllerStatus" && newConfig.type !== "aiStatus" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right" htmlFor="value">Value</Label>
+                <Input 
+                  id="value" 
+                  className="col-span-3" 
+                  value={newConfig.value} 
+                  onChange={(e) => setNewConfig({...newConfig, value: e.target.value})}
+                  placeholder={fieldTypes[newConfig.type as keyof typeof fieldTypes]?.type === "number" ? "Enter number" : "Enter text"}
+                  type={fieldTypes[newConfig.type as keyof typeof fieldTypes]?.type === "number" ? "number" : "text"}
+                />
+              </div>
+            )}
+
+            {newConfig.operator === "between" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right" htmlFor="secondValue">Second Value</Label>
+                <Input 
+                  id="secondValue" 
+                  className="col-span-3" 
+                  value={newConfig.secondValue} 
+                  onChange={(e) => setNewConfig({...newConfig, secondValue: e.target.value})}
+                  placeholder="Enter second value for range"
+                  type="number"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Email Notifications</Label>
               {newConfig.emails?.map((email, index) => (
