@@ -13,38 +13,19 @@ import {
   saveAlertConfiguration,
   deleteAlertConfiguration,
   toggleAlertMute,
-  resetAlertCount
+  resetAlertCount,
+  AlertConfiguration
 } from "@/utils/alertUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff } from "lucide-react";
+import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff, Building, Zap, Wrench } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { getFilteredProducts } from "@/utils/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { plants, lines, stations, programs, parts } from "@/utils/mockData";
 
-interface AlertConfiguration {
-  id: string;
-  name: string;
-  type: "controllerStatus" | "aiStatus" | "temperature" | "pressure" | "serialNumber" | "partNumber";
-  condition: string;
-  operator: string;
-  value: string;
-  secondValue?: string; // for "between" operator
-  emails: string[];
-  enabled: boolean;
-  muted: boolean;
-  triggerCount: number;
-  evaluationMode: "perProduct" | "aggregated" | "timeBased";
-  timeInterval?: number; // in minutes
-  aggregationType?: "count" | "average" | "min" | "max" | "percentage";
-  aggregationThreshold?: number; // threshold for aggregated checks
-  lastChecked?: Date;
-}
-
-// Define field types and their available operators
 const fieldTypes = {
   controllerStatus: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] },
   aiStatus: { type: "string", operators: ["equal", "notEqual", "contains", "notContains", "regex"] },
@@ -94,7 +75,6 @@ const timeIntervalOptions = [
   { value: 1440, label: "24 hours" }
 ];
 
-// Helper function to get operator icon and styling
 const getOperatorBadge = (operator: string) => {
   const operatorConfig = {
     equal: { icon: Equal, variant: "outline" as const, color: "text-blue-600" },
@@ -138,15 +118,17 @@ export const AlertsPage = () => {
     evaluationMode: "perProduct",
     timeInterval: 5,
     aggregationType: "count",
-    aggregationThreshold: 1
+    aggregationThreshold: 1,
+    plantId: "",
+    lineId: "",
+    stationId: "",
+    programId: "",
+    partId: ""
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load existing alerts
     setAlerts(getGlobalAlerts());
-    
-    // Load alert configurations
     setConfigurations(getAlertConfigurations());
   }, []);
 
@@ -214,7 +196,6 @@ export const AlertsPage = () => {
       return;
     }
 
-    // Create a new configuration
     const id = `config-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const completeConfig: AlertConfiguration = {
       id,
@@ -231,13 +212,17 @@ export const AlertsPage = () => {
       evaluationMode: newConfig.evaluationMode || "perProduct",
       timeInterval: newConfig.timeInterval,
       aggregationType: newConfig.aggregationType,
-      aggregationThreshold: newConfig.aggregationThreshold
+      aggregationThreshold: newConfig.aggregationThreshold,
+      plantId: newConfig.plantId || undefined,
+      lineId: newConfig.lineId || undefined,
+      stationId: newConfig.stationId || undefined,
+      programId: newConfig.programId || undefined,
+      partId: newConfig.partId || undefined
     };
 
     saveAlertConfiguration(completeConfig);
     setConfigurations([...configurations, completeConfig]);
     
-    // Create a test alert
     const testAlert = createAlert(
       `${completeConfig.name} Created`, 
       `Alert configuration has been created to monitor ${completeConfig.type} in ${completeConfig.evaluationMode} mode`,
@@ -246,7 +231,6 @@ export const AlertsPage = () => {
     setGlobalAlert(testAlert);
     setAlerts([...alerts, testAlert]);
     
-    // Close dialog and reset form
     setShowAddDialog(false);
     setNewConfig({
       name: "",
@@ -261,7 +245,12 @@ export const AlertsPage = () => {
       evaluationMode: "perProduct",
       timeInterval: 5,
       aggregationType: "count",
-      aggregationThreshold: 1
+      aggregationThreshold: 1,
+      plantId: "",
+      lineId: "",
+      stationId: "",
+      programId: "",
+      partId: ""
     });
 
     toast({
@@ -326,7 +315,6 @@ export const AlertsPage = () => {
   };
 
   const testAlert = (config: AlertConfiguration) => {
-    // Create a test alert
     const testAlert = createAlert(
       `${config.name} Test`, 
       `This is a test alert for ${config.type} condition: ${config.condition}`,
@@ -384,6 +372,80 @@ export const AlertsPage = () => {
     });
   };
 
+  const getAvailableLines = () => {
+    if (!newConfig.plantId) return [];
+    return lines.filter(line => line.plantId === newConfig.plantId);
+  };
+
+  const getAvailableStations = () => {
+    if (!newConfig.lineId) return [];
+    return stations.filter(station => station.lineId === newConfig.lineId);
+  };
+
+  const getLocationBadges = (config: AlertConfiguration) => {
+    const badges = [];
+    
+    if (config.plantId) {
+      const plant = plants.find(p => p.id === config.plantId);
+      if (plant) {
+        badges.push(
+          <Badge key="plant" variant="secondary" className="flex items-center gap-1">
+            <Building className="h-3 w-3" />
+            {plant.name}
+          </Badge>
+        );
+      }
+    }
+    
+    if (config.lineId) {
+      const line = lines.find(l => l.id === config.lineId);
+      if (line) {
+        badges.push(
+          <Badge key="line" variant="secondary" className="flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            {line.name}
+          </Badge>
+        );
+      }
+    }
+    
+    if (config.stationId) {
+      const station = stations.find(s => s.id === config.stationId);
+      if (station) {
+        badges.push(
+          <Badge key="station" variant="secondary" className="flex items-center gap-1">
+            <Wrench className="h-3 w-3" />
+            {station.name}
+          </Badge>
+        );
+      }
+    }
+    
+    if (config.programId) {
+      const program = programs.find(p => p.id === config.programId);
+      if (program) {
+        badges.push(
+          <Badge key="program" variant="outline">
+            {program.name}
+          </Badge>
+        );
+      }
+    }
+    
+    if (config.partId) {
+      const part = parts.find(p => p.id === config.partId);
+      if (part) {
+        badges.push(
+          <Badge key="part" variant="outline">
+            {part.name}
+          </Badge>
+        );
+      }
+    }
+    
+    return badges;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -412,6 +474,7 @@ export const AlertsPage = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Field</TableHead>
                     <TableHead>Condition</TableHead>
+                    <TableHead>Location/Program</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead>Emails</TableHead>
                     <TableHead>Status</TableHead>
@@ -434,6 +497,14 @@ export const AlertsPage = () => {
                           <span className="text-sm text-muted-foreground">
                             {getConditionDescription(config)}
                           </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {getLocationBadges(config).length > 0 ? 
+                            getLocationBadges(config) : 
+                            <span className="text-sm text-muted-foreground">All locations</span>
+                          }
                         </div>
                       </TableCell>
                       <TableCell>
@@ -520,7 +591,6 @@ export const AlertsPage = () => {
           </div>
         </div>
 
-        {/* Current Alerts */}
         <div>
           <h2 className="text-lg font-medium mb-3">Current Alerts</h2>
           <div className="border rounded-md">
@@ -535,13 +605,12 @@ export const AlertsPage = () => {
         </div>
       </div>
 
-      {/* Add Alert Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Create New Alert Configuration</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right" htmlFor="name">Name</Label>
               <Input 
@@ -550,6 +619,105 @@ export const AlertsPage = () => {
                 value={newConfig.name} 
                 onChange={(e) => setNewConfig({...newConfig, name: e.target.value})}
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 p-4 border rounded-lg">
+              <Label className="text-sm font-medium">Location and Program Filters (Optional)</Label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">Plant</Label>
+                  <Select value={newConfig.plantId} onValueChange={(value) => setNewConfig({...newConfig, plantId: value, lineId: "", stationId: ""})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any plant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any plant</SelectItem>
+                      {plants.map(plant => (
+                        <SelectItem key={plant.id} value={plant.id}>
+                          {plant.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Line</Label>
+                  <Select 
+                    value={newConfig.lineId} 
+                    onValueChange={(value) => setNewConfig({...newConfig, lineId: value, stationId: ""})}
+                    disabled={!newConfig.plantId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any line" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any line</SelectItem>
+                      {getAvailableLines().map(line => (
+                        <SelectItem key={line.id} value={line.id}>
+                          {line.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Station</Label>
+                  <Select 
+                    value={newConfig.stationId} 
+                    onValueChange={(value) => setNewConfig({...newConfig, stationId: value})}
+                    disabled={!newConfig.lineId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any station" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any station</SelectItem>
+                      {getAvailableStations().map(station => (
+                        <SelectItem key={station.id} value={station.id}>
+                          {station.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Program</Label>
+                  <Select value={newConfig.programId} onValueChange={(value) => setNewConfig({...newConfig, programId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any program" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any program</SelectItem>
+                      {programs.map(program => (
+                        <SelectItem key={program.id} value={program.id}>
+                          {program.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 col-span-2">
+                  <Label className="text-sm">Part</Label>
+                  <Select value={newConfig.partId} onValueChange={(value) => setNewConfig({...newConfig, partId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any part" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any part</SelectItem>
+                      {parts.map(part => (
+                        <SelectItem key={part.id} value={part.id}>
+                          {part.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">

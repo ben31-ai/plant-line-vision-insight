@@ -1,5 +1,5 @@
-
 import { AlertData } from "@/components/AlertBanner";
+import { plants, lines, stations, programs, parts } from "./mockData";
 
 // In-memory storage for alerts (would normally be stored in context or redux)
 let globalAlerts: AlertData[] = [];
@@ -23,6 +23,12 @@ interface AlertConfiguration {
   aggregationType?: "count" | "average" | "min" | "max" | "percentage";
   aggregationThreshold?: number; // threshold for aggregated checks
   lastChecked?: Date;
+  // New filtering properties
+  plantId?: string; // Filter by specific plant
+  lineId?: string; // Filter by specific line
+  stationId?: string; // Filter by specific station
+  programId?: string; // Filter by specific program
+  partId?: string; // Filter by specific part
 }
 
 let alertConfigurations: AlertConfiguration[] = [];
@@ -158,13 +164,13 @@ function setupTimeBasedChecking(config: AlertConfiguration): void {
   intervalTimers.set(config.id, timer);
 }
 
-// Mock function to simulate getting current products
+// Mock function to simulate getting current products with filters applied
 function getMockProducts(): any[] {
   // In a real app, this would fetch from your data source
   return [
-    { id: 1, serialNumber: "SN001", controllerStatus: "Warning", temperature: 85, pressure: 120 },
-    { id: 2, serialNumber: "SN002", controllerStatus: "OK", temperature: 70, pressure: 100 },
-    { id: 3, serialNumber: "SN003", controllerStatus: "Error", temperature: 95, pressure: 140 }
+    { id: 1, serialNumber: "SN001", controllerStatus: "Warning", temperature: 85, pressure: 120, plantId: "p1", lineId: "l1", stationId: "s1", programId: "pr1", partId: "pa1" },
+    { id: 2, serialNumber: "SN002", controllerStatus: "OK", temperature: 70, pressure: 100, plantId: "p1", lineId: "l2", stationId: "s3", programId: "pr2", partId: "pa2" },
+    { id: 3, serialNumber: "SN003", controllerStatus: "Error", temperature: 95, pressure: 140, plantId: "p2", lineId: "l3", stationId: "s4", programId: "pr1", partId: "pa3" }
   ];
 }
 
@@ -183,17 +189,29 @@ export function checkProductsForAlerts(
   }
 }
 
-// Check a single configuration against products
+// Check a single configuration against products with filtering
 function checkConfigurationAgainstProducts(
   config: AlertConfiguration, 
   products: any[], 
   alertCallback?: (alert: AlertData) => void
 ): void {
   
+  // Apply location and program filters
+  const filteredProducts = products.filter(product => {
+    if (config.plantId && product.plantId !== config.plantId) return false;
+    if (config.lineId && product.lineId !== config.lineId) return false;
+    if (config.stationId && product.stationId !== config.stationId) return false;
+    if (config.programId && product.programId !== config.programId) return false;
+    if (config.partId && product.partId !== config.partId) return false;
+    return true;
+  });
+
+  if (filteredProducts.length === 0) return; // No products match the filters
+  
   if (config.evaluationMode === "perProduct") {
-    checkPerProductMode(config, products, alertCallback);
+    checkPerProductMode(config, filteredProducts, alertCallback);
   } else if (config.evaluationMode === "aggregated") {
-    checkAggregatedMode(config, products, alertCallback);
+    checkAggregatedMode(config, filteredProducts, alertCallback);
   }
   
   // Update last checked time
@@ -213,9 +231,10 @@ function checkPerProductMode(
       config.triggerCount += 1;
       
       if (!config.muted) {
+        const locationInfo = getLocationInfo(config);
         const alert = createAlert(
           `${config.name} Alert`,
-          `Product ${product.serialNumber} triggered alert for ${config.type}: ${config.operator} ${config.value}${config.secondValue ? ` and ${config.secondValue}` : ''}`,
+          `Product ${product.serialNumber} triggered alert for ${config.type}${locationInfo}: ${config.operator} ${config.value}${config.secondValue ? ` and ${config.secondValue}` : ''}`,
           "warning"
         );
         
@@ -230,7 +249,7 @@ function checkPerProductMode(
   }
 }
 
-// Check aggregated conditions across all products
+// Check aggregated conditions across filtered products
 function checkAggregatedMode(
   config: AlertConfiguration, 
   products: any[], 
@@ -270,9 +289,10 @@ function checkAggregatedMode(
     config.triggerCount += 1;
     
     if (!config.muted) {
+      const locationInfo = getLocationInfo(config);
       const alert = createAlert(
         `${config.name} Aggregated Alert`,
-        `${config.aggregationType} value (${aggregatedValue.toFixed(1)}) exceeded threshold of ${config.aggregationThreshold} for ${config.type}`,
+        `${config.aggregationType} value (${aggregatedValue.toFixed(1)}) exceeded threshold of ${config.aggregationThreshold} for ${config.type}${locationInfo}`,
         "warning"
       );
       
@@ -284,6 +304,38 @@ function checkAggregatedMode(
       sendAlertEmails(config, alert);
     }
   }
+}
+
+// Helper function to get location information for alerts
+function getLocationInfo(config: AlertConfiguration): string {
+  const locationParts = [];
+  
+  if (config.plantId) {
+    const plant = plants.find(p => p.id === config.plantId);
+    if (plant) locationParts.push(`Plant: ${plant.name}`);
+  }
+  
+  if (config.lineId) {
+    const line = lines.find(l => l.id === config.lineId);
+    if (line) locationParts.push(`Line: ${line.name}`);
+  }
+  
+  if (config.stationId) {
+    const station = stations.find(s => s.id === config.stationId);
+    if (station) locationParts.push(`Station: ${station.name}`);
+  }
+  
+  if (config.programId) {
+    const program = programs.find(p => p.id === config.programId);
+    if (program) locationParts.push(`Program: ${program.name}`);
+  }
+  
+  if (config.partId) {
+    const part = parts.find(p => p.id === config.partId);
+    if (part) locationParts.push(`Part: ${part.name}`);
+  }
+  
+  return locationParts.length > 0 ? ` (${locationParts.join(', ')})` : '';
 }
 
 // Get field value from product
@@ -398,3 +450,6 @@ export function cleanupTimeBasedChecking(): void {
   });
   intervalTimers.clear();
 }
+
+// Export the AlertConfiguration type
+export type { AlertConfiguration };
