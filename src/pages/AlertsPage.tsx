@@ -17,13 +17,14 @@ import {
   AlertConfiguration
 } from "@/utils/alertUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff, Building, Zap, Wrench } from "lucide-react";
+import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff, Building, Zap, Wrench, Filter } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { plants, lines, stations, programs, parts } from "@/utils/mockData";
 
 const fieldTypes = {
@@ -105,6 +106,14 @@ export const AlertsPage = () => {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [configurations, setConfigurations] = useState<AlertConfiguration[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  
+  // Filtres de localisation
+  const [filterPlantId, setFilterPlantId] = useState<string>("");
+  const [filterLineId, setFilterLineId] = useState<string>("");
+  const [filterStationId, setFilterStationId] = useState<string>("");
+  const [filterProgramId, setFilterProgramId] = useState<string>("");
+  const [filterPartId, setFilterPartId] = useState<string>("");
+  
   const [newConfig, setNewConfig] = useState<Partial<AlertConfiguration>>({
     name: "",
     type: "controllerStatus",
@@ -131,6 +140,42 @@ export const AlertsPage = () => {
     setAlerts(getGlobalAlerts());
     setConfigurations(getAlertConfigurations());
   }, []);
+
+  // Fonctions de filtrage
+  const getFilteredConfigurations = () => {
+    return configurations.filter(config => {
+      if (filterPlantId && config.plantId && config.plantId !== filterPlantId) return false;
+      if (filterLineId && config.lineId && config.lineId !== filterLineId) return false;
+      if (filterStationId && config.stationId && config.stationId !== filterStationId) return false;
+      if (filterProgramId && config.programId && config.programId !== filterProgramId) return false;
+      if (filterPartId && config.partId && config.partId !== filterPartId) return false;
+      return true;
+    });
+  };
+
+  const getFilteredAlerts = () => {
+    // Pour l'instant, on retourne toutes les alertes car elles n'ont pas de propriétés de localisation
+    // Dans une implémentation complète, les alertes auraient aussi des propriétés de localisation
+    return alerts;
+  };
+
+  const getAvailableFilterLines = () => {
+    if (!filterPlantId) return [];
+    return lines.filter(line => line.plantId === filterPlantId);
+  };
+
+  const getAvailableFilterStations = () => {
+    if (!filterLineId) return [];
+    return stations.filter(station => station.lineId === filterLineId);
+  };
+
+  const clearAllFilters = () => {
+    setFilterPlantId("");
+    setFilterLineId("");
+    setFilterStationId("");
+    setFilterProgramId("");
+    setFilterPartId("");
+  };
 
   const handleDismissAlert = (id: string) => {
     removeGlobalAlert(id);
@@ -446,6 +491,9 @@ export const AlertsPage = () => {
     return badges;
   };
 
+  const filteredConfigurations = getFilteredConfigurations();
+  const filteredAlerts = getFilteredAlerts();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -458,14 +506,143 @@ export const AlertsPage = () => {
           </Button>
         </div>
 
-        <AlertBanner alerts={alerts} onDismiss={handleDismissAlert} />
+        {/* Filtres de localisation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Location Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Plant</Label>
+                <Select value={filterPlantId || "all"} onValueChange={(value) => {
+                  const plantId = value === "all" ? "" : value;
+                  setFilterPlantId(plantId);
+                  setFilterLineId("");
+                  setFilterStationId("");
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any plant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any plant</SelectItem>
+                    {plants.map(plant => (
+                      <SelectItem key={plant.id} value={plant.id}>
+                        {plant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Line</Label>
+                <Select 
+                  value={filterLineId || "all"} 
+                  onValueChange={(value) => {
+                    const lineId = value === "all" ? "" : value;
+                    setFilterLineId(lineId);
+                    setFilterStationId("");
+                  }}
+                  disabled={!filterPlantId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any line" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any line</SelectItem>
+                    {getAvailableFilterLines().map(line => (
+                      <SelectItem key={line.id} value={line.id}>
+                        {line.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Station</Label>
+                <Select 
+                  value={filterStationId || "all"} 
+                  onValueChange={(value) => setFilterStationId(value === "all" ? "" : value)}
+                  disabled={!filterLineId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any station" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any station</SelectItem>
+                    {getAvailableFilterStations().map(station => (
+                      <SelectItem key={station.id} value={station.id}>
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Program</Label>
+                <Select value={filterProgramId || "all"} onValueChange={(value) => setFilterProgramId(value === "all" ? "" : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any program" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any program</SelectItem>
+                    {programs.map(program => (
+                      <SelectItem key={program.id} value={program.id}>
+                        {program.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Part</Label>
+                <Select value={filterPartId || "all"} onValueChange={(value) => setFilterPartId(value === "all" ? "" : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any part" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any part</SelectItem>
+                    {parts.map(part => (
+                      <SelectItem key={part.id} value={part.id}>
+                        {part.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>
+                  Showing {filteredConfigurations.length} of {configurations.length} configurations
+                </span>
+              </div>
+              <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                Clear All Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <AlertBanner alerts={filteredAlerts} onDismiss={handleDismissAlert} />
 
         <div>
           <h2 className="text-lg font-medium mb-3">Alert Configurations</h2>
           <div className="border rounded-md">
-            {configurations.length === 0 ? (
+            {filteredConfigurations.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
-                No alert configurations yet. Create one to get started.
+                {configurations.length === 0 ? 
+                  "No alert configurations yet. Create one to get started." :
+                  "No alert configurations match the selected filters."
+                }
               </div>
             ) : (
               <Table>
@@ -483,7 +660,7 @@ export const AlertsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {configurations.map((config) => (
+                  {filteredConfigurations.map((config) => (
                     <TableRow key={config.id}>
                       <TableCell className="font-medium">{config.name}</TableCell>
                       <TableCell>
@@ -594,12 +771,12 @@ export const AlertsPage = () => {
         <div>
           <h2 className="text-lg font-medium mb-3">Current Alerts</h2>
           <div className="border rounded-md">
-            {alerts.length === 0 ? (
+            {filteredAlerts.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
                 No active alerts.
               </div>
             ) : (
-              <AlertBanner alerts={alerts} onDismiss={handleDismissAlert} />
+              <AlertBanner alerts={filteredAlerts} onDismiss={handleDismissAlert} />
             )}
           </div>
         </div>
