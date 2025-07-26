@@ -627,12 +627,12 @@ export const AlertsPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm">Plant</Label>
-                  <Select value={newConfig.plantId} onValueChange={(value) => setNewConfig({...newConfig, plantId: value, lineId: "", stationId: ""})}>
+                  <Select value={newConfig.plantId || "all"} onValueChange={(value) => setNewConfig({...newConfig, plantId: value === "all" ? "" : value, lineId: "", stationId: ""})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Any plant" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any plant</SelectItem>
+                      <SelectItem value="all">Any plant</SelectItem>
                       {plants.map(plant => (
                         <SelectItem key={plant.id} value={plant.id}>
                           {plant.name}
@@ -645,15 +645,15 @@ export const AlertsPage = () => {
                 <div className="space-y-2">
                   <Label className="text-sm">Line</Label>
                   <Select 
-                    value={newConfig.lineId} 
-                    onValueChange={(value) => setNewConfig({...newConfig, lineId: value, stationId: ""})}
+                    value={newConfig.lineId || "all"} 
+                    onValueChange={(value) => setNewConfig({...newConfig, lineId: value === "all" ? "" : value, stationId: ""})}
                     disabled={!newConfig.plantId}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Any line" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any line</SelectItem>
+                      <SelectItem value="all">Any line</SelectItem>
                       {getAvailableLines().map(line => (
                         <SelectItem key={line.id} value={line.id}>
                           {line.name}
@@ -666,15 +666,15 @@ export const AlertsPage = () => {
                 <div className="space-y-2">
                   <Label className="text-sm">Station</Label>
                   <Select 
-                    value={newConfig.stationId} 
-                    onValueChange={(value) => setNewConfig({...newConfig, stationId: value})}
+                    value={newConfig.stationId || "all"} 
+                    onValueChange={(value) => setNewConfig({...newConfig, stationId: value === "all" ? "" : value})}
                     disabled={!newConfig.lineId}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Any station" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any station</SelectItem>
+                      <SelectItem value="all">Any station</SelectItem>
                       {getAvailableStations().map(station => (
                         <SelectItem key={station.id} value={station.id}>
                           {station.name}
@@ -686,12 +686,12 @@ export const AlertsPage = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm">Program</Label>
-                  <Select value={newConfig.programId} onValueChange={(value) => setNewConfig({...newConfig, programId: value})}>
+                  <Select value={newConfig.programId || "all"} onValueChange={(value) => setNewConfig({...newConfig, programId: value === "all" ? "" : value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Any program" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any program</SelectItem>
+                      <SelectItem value="all">Any program</SelectItem>
                       {programs.map(program => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.name}
@@ -703,12 +703,12 @@ export const AlertsPage = () => {
 
                 <div className="space-y-2 col-span-2">
                   <Label className="text-sm">Part</Label>
-                  <Select value={newConfig.partId} onValueChange={(value) => setNewConfig({...newConfig, partId: value})}>
+                  <Select value={newConfig.partId || "all"} onValueChange={(value) => setNewConfig({...newConfig, partId: value === "all" ? "" : value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Any part" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any part</SelectItem>
+                      <SelectItem value="all">Any part</SelectItem>
                       {parts.map(part => (
                         <SelectItem key={part.id} value={part.id}>
                           {part.name}
