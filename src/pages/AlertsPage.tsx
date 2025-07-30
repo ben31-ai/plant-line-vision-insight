@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Bell, BellRing, AlertTriangle, Equal, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, MoreHorizontal, X, Code, EyeOff, Building, Zap, Wrench, Filter } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -99,6 +100,39 @@ const getOperatorBadge = (operator: string) => {
       <Icon className="h-3 w-3" />
       {operatorLabels[operator as keyof typeof operatorLabels] || operator}
     </Badge>
+  );
+};
+
+const EmailsList = ({ emails }: { emails: string[] }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="text-left hover:bg-muted/50 rounded p-1 max-w-[200px] truncate cursor-pointer">
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            <span className="truncate">
+              {emails.length === 1 ? emails[0] : `${emails[0]} +${emails.length - 1} more`}
+            </span>
+          </div>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="start">
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm">Email Recipients</h4>
+          <div className="space-y-1">
+            {emails.map((email, index) => (
+              <div key={index} className="flex items-center gap-2 text-sm p-2 bg-muted rounded">
+                <Mail className="h-3 w-3" />
+                {email}
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {emails.length} recipient{emails.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -701,8 +735,8 @@ export const AlertsPage = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {config.emails.join(", ")}
+                      <TableCell>
+                        <EmailsList emails={config.emails} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
