@@ -31,39 +31,70 @@ export const DashboardAlerts: React.FC<DashboardAlertsProps> = ({
 export const checkStatusForAlerts = (products: any[]): AlertData[] => {
   const newAlerts: AlertData[] = [];
   
-  // Check for failures
+  // Check for failures with enhanced details
   const failedProducts = products.filter(p => p.status === 'Failed');
   if (failedProducts.length > 2) {
-    newAlerts.push({
-      id: `failed-${Date.now()}`,
-      title: 'High Failure Rate',
-      message: `${failedProducts.length} products failed in the selected time period.`,
-      type: 'error',
-      timestamp: new Date()
+    failedProducts.forEach((product, index) => {
+      if (index < 3) { // Limite aux 3 premiers pour éviter le spam
+        newAlerts.push({
+          id: `failed-${product.id}-${Date.now()}`,
+          title: 'Échec de Production Détecté',
+          message: `Le produit ${product.serialNumber || product.id} a échoué lors de l'inspection.`,
+          type: 'error',
+          timestamp: new Date(),
+          configurationName: 'Surveillance des Échecs',
+          field: 'controllerStatus',
+          evaluationMode: 'perProduct',
+          operator: 'equal',
+          threshold: 'Failed',
+          actualValue: product.status,
+          productId: product.serialNumber || product.id
+        });
+      }
     });
   }
   
-  // Check for machine warnings
+  // Check for machine warnings with enhanced details
   const machineWarnings = products.filter(p => p.controllerStatus === 'Warning');
   if (machineWarnings.length > 0) {
-    newAlerts.push({
-      id: `warning-${Date.now()}`,
-      title: 'Machine Warning',
-      message: `${machineWarnings.length} machine warnings detected.`,
-      type: 'warning',
-      timestamp: new Date()
+    machineWarnings.forEach((product, index) => {
+      if (index < 2) { // Limite aux 2 premiers
+        newAlerts.push({
+          id: `warning-${product.id}-${Date.now()}`,
+          title: 'Alerte Machine Détectée',
+          message: `Le contrôleur signale un avertissement pour le produit ${product.serialNumber || product.id}.`,
+          type: 'warning',
+          timestamp: new Date(),
+          configurationName: 'Surveillance Contrôleur',
+          field: 'controllerStatus',
+          evaluationMode: 'perProduct',
+          operator: 'equal',
+          threshold: 'Warning',
+          actualValue: product.controllerStatus,
+          productId: product.serialNumber || product.id
+        });
+      }
     });
   }
   
-  // Check for AI model retraining needed
-  const aiNeedsRetraining = products.some(p => p.aiStatus === 'NeedsRetraining');
-  if (aiNeedsRetraining) {
+  // Check for AI model retraining needed with enhanced details
+  const aiNeedsRetraining = products.filter(p => p.aiStatus === 'NeedsRetraining');
+  if (aiNeedsRetraining.length > 0) {
+    const product = aiNeedsRetraining[0]; // Prendre le premier exemple
     newAlerts.push({
       id: `ai-${Date.now()}`,
-      title: 'AI Model Update Required',
-      message: 'One or more AI models need retraining with new data.',
+      title: 'Mise à Jour IA Requise',
+      message: `Le modèle IA nécessite un réentraînement basé sur les nouvelles données de production.`,
       type: 'info',
-      timestamp: new Date()
+      timestamp: new Date(),
+      configurationName: 'Surveillance IA',
+      field: 'aiStatus',
+      evaluationMode: 'aggregated',
+      operator: 'equal',
+      threshold: 'NeedsRetraining',
+      actualValue: product.aiStatus,
+      productId: product.serialNumber || product.id,
+      aggregationType: 'count'
     });
   }
 
