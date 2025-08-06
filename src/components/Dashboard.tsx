@@ -11,9 +11,13 @@ import { DashboardTimeFilters } from "./DashboardTimeFilters";
 import { DashboardNavigation } from "./DashboardNavigation";
 import { DashboardContent } from "./DashboardContent";
 import { LoadingPage } from "./LoadingPage";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { RotateCcw } from "lucide-react";
 
 export const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
   
   // Default to the last 7 days
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
@@ -44,6 +48,49 @@ export const Dashboard = () => {
 
     return () => clearTimeout(loadingTimer);
   }, []);
+  
+  // Auto-refresh functionality
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (autoRefresh) {
+      intervalId = setInterval(() => {
+        // Refresh the data
+        const filteredProducts = getFilteredProducts(
+          startDate,
+          endDate,
+          filters.plantId || undefined,
+          filters.lineId || undefined,
+          filters.stationId || undefined,
+          filters.programId || undefined,
+          filters.partId || undefined,
+          filters.controllerStatus || undefined,
+          filters.aiStatus || undefined,
+          filters.serialNumber || undefined
+        );
+        setProducts(filteredProducts);
+        setMetrics(getMetrics(filteredProducts));
+        
+        // Check for new alerts
+        const statusAlerts = checkStatusForAlerts(filteredProducts);
+        if (statusAlerts.length > 0) {
+          setAlerts(prevAlerts => {
+            const existingTitles = prevAlerts.map(alert => alert.title);
+            const uniqueNewAlerts = statusAlerts.filter(alert => !existingTitles.includes(alert.title));
+            return [...prevAlerts, ...uniqueNewAlerts];
+          });
+        }
+        
+        console.log('Dashboard auto-refreshed at:', new Date().toLocaleTimeString());
+      }, 10000); // 10 seconds
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoRefresh, startDate, endDate, filters]);
   
   // Update products and metrics when filters or date range change
   useEffect(() => {
@@ -113,7 +160,20 @@ export const Dashboard = () => {
       <Header />
       <div className="container py-6 mx-auto space-y-6 flex-grow">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
+          <div className="flex items-center gap-6">
+            <h1 className="text-2xl font-bold mb-6">Manufacturing Process Monitor</h1>
+            <div className="flex items-center gap-2 mb-6">
+              <Switch
+                id="auto-refresh"
+                checked={autoRefresh}
+                onCheckedChange={setAutoRefresh}
+              />
+              <Label htmlFor="auto-refresh" className="flex items-center gap-2 text-sm">
+                <RotateCcw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+                Auto-refresh (10s)
+              </Label>
+            </div>
+          </div>
           <DashboardNavigation />
         </div>
         
