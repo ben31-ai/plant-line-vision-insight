@@ -30,7 +30,7 @@ export const ObjectDetectionViewer = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
+  const [classVisibility, setClassVisibility] = useState<Record<string, boolean>>({});
 
   // Mock inference data for demonstration
   const mockInference: InferenceData = {
@@ -78,8 +78,24 @@ export const ObjectDetectionViewer = () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Use mock data for now
-    setInferenceData({ ...mockInference, image: imagePreview });
+    const newInferenceData = { ...mockInference, image: imagePreview };
+    setInferenceData(newInferenceData);
+    
+    // Initialize class visibility - all classes visible by default
+    const initialVisibility: Record<string, boolean> = {};
+    newInferenceData.detections.forEach(detection => {
+      initialVisibility[detection.class] = true;
+    });
+    setClassVisibility(initialVisibility);
+    
     setIsLoading(false);
+  };
+
+  const toggleClassVisibility = (className: string) => {
+    setClassVisibility(prev => ({
+      ...prev,
+      [className]: !prev[className]
+    }));
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -99,15 +115,6 @@ export const ObjectDetectionViewer = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="show-bounding-boxes" 
-              checked={showBoundingBoxes} 
-              onCheckedChange={setShowBoundingBoxes}
-            />
-            <Label htmlFor="show-bounding-boxes">Show Bounding Boxes</Label>
-          </div>
-          
           <Input
             type="file"
             accept="image/*"
@@ -124,9 +131,11 @@ export const ObjectDetectionViewer = () => {
               />
               
               {/* Overlay detection boxes if inference is done */}
-              {inferenceData && showBoundingBoxes && (
+              {inferenceData && (
                 <div className="absolute inset-0">
-                  {inferenceData.detections.map((detection, index) => (
+                  {inferenceData.detections
+                    .filter(detection => classVisibility[detection.class])
+                    .map((detection, index) => (
                     <div
                       key={index}
                       className="absolute border-2 border-primary bg-primary/10"
@@ -211,6 +220,10 @@ export const ObjectDetectionViewer = () => {
                       className="flex items-center justify-between p-3 rounded-lg border"
                     >
                       <div className="flex items-center gap-3">
+                        <Switch 
+                          checked={classVisibility[detection.class] || false}
+                          onCheckedChange={() => toggleClassVisibility(detection.class)}
+                        />
                         <div 
                           className={`w-3 h-3 rounded-full ${getConfidenceColor(detection.confidence)}`}
                         />
