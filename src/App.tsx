@@ -12,6 +12,7 @@ import KPIPage from "./pages/KPIPage";
 import AlertsPage from "./pages/AlertsPage";
 import AnomalyRootCausePage from "./pages/AnomalyRootCausePage";
 import ObjectDetectionPage from "./pages/ObjectDetectionPage";
+import SegmentationPage from "./pages/SegmentationPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/anomaly-root-cause" element={<AnomalyRootCausePage />} />
           <Route path="/object-detection" element={<ObjectDetectionPage />} />
+          <Route path="/segmentation" element={<SegmentationPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
