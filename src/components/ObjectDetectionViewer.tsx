@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 import { Upload, Eye, Zap } from "lucide-react";
 
 interface DetectionResult {
@@ -28,6 +30,7 @@ export const ObjectDetectionViewer = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
 
   // Mock inference data for demonstration
   const mockInference: InferenceData = {
@@ -96,6 +99,15 @@ export const ObjectDetectionViewer = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="show-bounding-boxes" 
+              checked={showBoundingBoxes} 
+              onCheckedChange={setShowBoundingBoxes}
+            />
+            <Label htmlFor="show-bounding-boxes">Show Bounding Boxes</Label>
+          </div>
+          
           <Input
             type="file"
             accept="image/*"
@@ -112,7 +124,7 @@ export const ObjectDetectionViewer = () => {
               />
               
               {/* Overlay detection boxes if inference is done */}
-              {inferenceData && (
+              {inferenceData && showBoundingBoxes && (
                 <div className="absolute inset-0">
                   {inferenceData.detections.map((detection, index) => (
                     <div
