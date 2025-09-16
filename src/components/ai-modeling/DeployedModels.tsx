@@ -3,8 +3,12 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Settings, Factory, Zap, Code, Package, CheckCircle, TrendingUp, AlertCircle, Check, Info } from "lucide-react";
+import { Brain, Settings, Factory, Zap, Code, Package, CheckCircle, TrendingUp, AlertCircle, Check, Info, Copy } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 // Mock data for models by filter combination
 const mockModelsByFilter = [
@@ -102,6 +106,9 @@ const mockModelsByFilter = [
 ];
 
 export const DeployedModels: React.FC = () => {
+  const [selectedModel, setSelectedModel] = useState<any>(null);
+  const [targetConfig, setTargetConfig] = useState<any>({});
+  const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "In progress";
     const date = new Date(dateString);
@@ -132,6 +139,24 @@ export const DeployedModels: React.FC = () => {
       return <Badge variant="outline" className="text-gray-500"><AlertCircle className="h-3 w-3 mr-1" /> Retired</Badge>;
     }
     return <Badge variant="outline">{status}</Badge>;
+  };
+
+  const handleDeployToConfig = (model: any) => {
+    setSelectedModel(model);
+    setIsDeployDialogOpen(true);
+  };
+
+  const handleConfirmDeploy = () => {
+    if (selectedModel && targetConfig.plant) {
+      toast.success(`Model "${selectedModel.name}" deployment initiated to ${targetConfig.plant} - ${targetConfig.line} - ${targetConfig.station}`);
+      setIsDeployDialogOpen(false);
+      setSelectedModel(null);
+      setTargetConfig({});
+    }
+  };
+
+  const getAvailableConfigurations = () => {
+    return mockModelsByFilter.map(config => config.filters);
   };
 
   return (
@@ -199,6 +224,7 @@ export const DeployedModels: React.FC = () => {
                           <TableHead className="text-xs">Status</TableHead>
                           <TableHead className="text-xs">Trained Date</TableHead>
                           <TableHead className="text-xs">SHA</TableHead>
+                          <TableHead className="text-xs">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -222,6 +248,19 @@ export const DeployedModels: React.FC = () => {
                               <code className="bg-gray-100 px-1 rounded font-mono text-xs">
                                 {formatSha(model.githubSha)}
                               </code>
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {(model.status === "trained" || model.isDeployed) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeployToConfig(model)}
+                                  className="h-7 text-xs"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" />
+                                  Deploy
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -264,6 +303,114 @@ export const DeployedModels: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Deploy Model Dialog */}
+      <Dialog open={isDeployDialogOpen} onOpenChange={setIsDeployDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Deploy Model to Configuration</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Selected Model</Label>
+              <div className="mt-1 p-2 bg-gray-50 rounded text-sm">
+                {selectedModel?.name} ({selectedModel?.version})
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Target Configuration</Label>
+              
+              <div>
+                <Label className="text-xs">Plant</Label>
+                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, plant: value}))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select plant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Set(getAvailableConfigurations().map(c => c.plant))).map(plant => (
+                      <SelectItem key={plant} value={plant} className="text-xs">{plant}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Line</Label>
+                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, line: value}))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select line" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Set(getAvailableConfigurations().map(c => c.line))).map(line => (
+                      <SelectItem key={line} value={line} className="text-xs">{line}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Station</Label>
+                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, station: value}))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select station" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Set(getAvailableConfigurations().map(c => c.station))).map(station => (
+                      <SelectItem key={station} value={station} className="text-xs">{station}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Program</Label>
+                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, program: value}))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select program" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Set(getAvailableConfigurations().map(c => c.program))).map(program => (
+                      <SelectItem key={program} value={program} className="text-xs">{program}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Part</Label>
+                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, part: value}))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select part" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Set(getAvailableConfigurations().map(c => c.part))).map(part => (
+                      <SelectItem key={part} value={part} className="text-xs">{part}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeployDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleConfirmDeploy}
+                disabled={!targetConfig.plant || !targetConfig.line || !targetConfig.station}
+              >
+                Deploy Model
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
