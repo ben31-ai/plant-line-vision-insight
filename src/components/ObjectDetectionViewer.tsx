@@ -203,13 +203,13 @@ export const ObjectDetectionViewer = () => {
                               onMouseLeave={() => setHoveredIndex(null)}
                             >
                               <div 
-                                className="absolute -top-7 left-0 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg"
+                                className="absolute -top-8 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg"
                                 style={{ 
                                   backgroundColor: colors.badge,
-                                  border: `1px solid ${colors.border}`
+                                  border: `2px solid ${colors.border}`
                                 }}
                               >
-                                {detection.class} {(detection.confidence * 100).toFixed(1)}%
+                                {index + 1}
                               </div>
                             </div>
                           );
@@ -275,13 +275,15 @@ export const ObjectDetectionViewer = () => {
                             onMouseLeave={() => setHoveredIndex(null)}
                           >
                             <div className="flex items-center gap-3">
+                              <div 
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                                style={{ backgroundColor: colors.border }}
+                              >
+                                {index + 1}
+                              </div>
                               <Switch 
                                 checked={classVisibility[detection.class] || false}
                                 onCheckedChange={() => toggleClassVisibility(detection.class)}
-                              />
-                              <div 
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: colors.border }}
                               />
                               <span className="font-medium capitalize text-sm">
                                 {detection.class}
