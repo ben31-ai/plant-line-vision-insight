@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { ScrollArea } from "./ui/scroll-area";
 import { Upload, Eye, Zap } from "lucide-react";
 
 interface DetectionResult {
@@ -31,6 +32,22 @@ export const ObjectDetectionViewer = () => {
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<string, boolean>>({});
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // Color palette for different classes
+  const getClassColor = (className: string) => {
+    const colors: Record<string, { border: string; bg: string; badge: string }> = {
+      person: { border: "#3b82f6", bg: "rgba(59, 130, 246, 0.15)", badge: "#3b82f6" },
+      car: { border: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", badge: "#ef4444" },
+      bicycle: { border: "#10b981", bg: "rgba(16, 185, 129, 0.15)", badge: "#10b981" },
+      dog: { border: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", badge: "#f59e0b" },
+      cat: { border: "#8b5cf6", bg: "rgba(139, 92, 246, 0.15)", badge: "#8b5cf6" },
+    };
+    
+    // Default color if class not in palette
+    const defaultColor = { border: "#6b7280", bg: "rgba(107, 114, 128, 0.15)", badge: "#6b7280" };
+    return colors[className] || defaultColor;
+  };
 
   // Mock inference data for demonstration
   const mockInference: InferenceData = {
@@ -164,25 +181,39 @@ export const ObjectDetectionViewer = () => {
                     <div className="absolute inset-0">
                       {inferenceData.detections
                         .filter(detection => classVisibility[detection.class])
-                        .map((detection, index) => (
-                        <div
-                          key={index}
-                          className="absolute border-2 border-primary bg-primary/10"
-                          style={{
-                            left: `${(detection.bbox.x / 640) * 100}%`,
-                            top: `${(detection.bbox.y / 480) * 100}%`,
-                            width: `${(detection.bbox.width / 640) * 100}%`,
-                            height: `${(detection.bbox.height / 480) * 100}%`,
-                          }}
-                        >
-                          <Badge 
-                            className="absolute -top-6 left-0 text-xs"
-                            style={{ backgroundColor: `hsl(var(--primary))` }}
-                          >
-                            {detection.class} ({(detection.confidence * 100).toFixed(1)}%)
-                          </Badge>
-                        </div>
-                      ))}
+                        .map((detection, index) => {
+                          const colors = getClassColor(detection.class);
+                          const isHovered = hoveredIndex === index;
+                          
+                          return (
+                            <div
+                              key={index}
+                              className="absolute transition-all duration-200"
+                              style={{
+                                left: `${(detection.bbox.x / 640) * 100}%`,
+                                top: `${(detection.bbox.y / 480) * 100}%`,
+                                width: `${(detection.bbox.width / 640) * 100}%`,
+                                height: `${(detection.bbox.height / 480) * 100}%`,
+                                border: `${isHovered ? '3' : '2'}px solid ${colors.border}`,
+                                backgroundColor: colors.bg,
+                                boxShadow: isHovered ? `0 0 15px ${colors.border}` : 'none',
+                                zIndex: isHovered ? 10 : 1,
+                              }}
+                              onMouseEnter={() => setHoveredIndex(index)}
+                              onMouseLeave={() => setHoveredIndex(null)}
+                            >
+                              <div 
+                                className="absolute -top-7 left-0 px-2 py-1 rounded text-xs font-semibold text-white shadow-lg"
+                                style={{ 
+                                  backgroundColor: colors.badge,
+                                  border: `1px solid ${colors.border}`
+                                }}
+                              >
+                                {detection.class} {(detection.confidence * 100).toFixed(1)}%
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   )}
                 </div>
@@ -194,90 +225,105 @@ export const ObjectDetectionViewer = () => {
 
       {/* Inference Results - Takes 1/4 of the screen */}
       <div className="xl:col-span-1">
-        <Card className="h-full">
-          <CardHeader>
+        <Card className="h-full flex flex-col">
+          <CardHeader className="flex-shrink-0">
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
               Detection Results
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-full overflow-y-auto">
+          <CardContent className="flex-1 overflow-hidden p-0">
             {!inferenceData ? (
-              <div className="text-center text-muted-foreground py-8">
+              <div className="text-center text-muted-foreground py-8 px-6">
                 Upload an image and run inference to see results
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Model Information */}
-                <div className="grid grid-cols-1 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Model:</span>
-                    <p className="text-muted-foreground">{inferenceData.modelName}</p>
+              <ScrollArea className="h-full px-6">
+                <div className="space-y-4 pb-6">
+                  {/* Model Information */}
+                  <div className="grid grid-cols-1 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Model:</span>
+                      <p className="text-muted-foreground">{inferenceData.modelName}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Processing Time:</span>
+                      <p className="text-muted-foreground">{inferenceData.processingTime}ms</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Processing Time:</span>
-                    <p className="text-muted-foreground">{inferenceData.processingTime}ms</p>
-                  </div>
-                </div>
 
-                {/* Detections List */}
-                <div>
-                  <h4 className="font-medium mb-3">
-                    Detected Objects ({inferenceData.detections.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {inferenceData.detections.map((detection, index) => (
-                      <div 
-                        key={index}
-                        className="flex items-center justify-between p-3 rounded-lg border"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Switch 
-                            checked={classVisibility[detection.class] || false}
-                            onCheckedChange={() => toggleClassVisibility(detection.class)}
-                          />
+                  {/* Detections List */}
+                  <div>
+                    <h4 className="font-medium mb-3">
+                      Detected Objects ({inferenceData.detections.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {inferenceData.detections.map((detection, index) => {
+                        const colors = getClassColor(detection.class);
+                        const isHovered = hoveredIndex === index;
+                        
+                        return (
                           <div 
-                            className={`w-3 h-3 rounded-full ${getConfidenceColor(detection.confidence)}`}
-                          />
-                          <span className="font-medium capitalize text-sm">
-                            {detection.class}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">
-                            {(detection.confidence * 100).toFixed(1)}%
+                            key={index}
+                            className="flex items-center justify-between p-3 rounded-lg border transition-all duration-200 cursor-pointer"
+                            style={{
+                              borderColor: isHovered ? colors.border : undefined,
+                              backgroundColor: isHovered ? colors.bg : undefined,
+                              boxShadow: isHovered ? `0 0 8px ${colors.bg}` : undefined,
+                            }}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Switch 
+                                checked={classVisibility[detection.class] || false}
+                                onCheckedChange={() => toggleClassVisibility(detection.class)}
+                              />
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: colors.border }}
+                              />
+                              <span className="font-medium capitalize text-sm">
+                                {detection.class}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium">
+                                {(detection.confidence * 100).toFixed(1)}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {detection.bbox.width}×{detection.bbox.height}px
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {detection.bbox.width}×{detection.bbox.height}px
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
 
-                {/* Detection Statistics */}
-                <div className="grid grid-cols-1 gap-2 pt-4 border-t">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">
-                      {inferenceData.detections.filter(d => d.confidence >= 0.9).length}
+                  {/* Detection Statistics */}
+                  <div className="grid grid-cols-1 gap-2 pt-4 border-t">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-600">
+                        {inferenceData.detections.filter(d => d.confidence >= 0.9).length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">High Conf.</div>
                     </div>
-                    <div className="text-xs text-muted-foreground">High Conf.</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-yellow-600">
-                      {inferenceData.detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.9).length}
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-yellow-600">
+                        {inferenceData.detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.9).length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Medium Conf.</div>
                     </div>
-                    <div className="text-xs text-muted-foreground">Medium Conf.</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-red-600">
-                      {inferenceData.detections.filter(d => d.confidence < 0.7).length}
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-red-600">
+                        {inferenceData.detections.filter(d => d.confidence < 0.7).length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Low Conf.</div>
                     </div>
-                    <div className="text-xs text-muted-foreground">Low Conf.</div>
                   </div>
                 </div>
-              </div>
+              </ScrollArea>
             )}
           </CardContent>
         </Card>
