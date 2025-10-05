@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle, TrendingUp, Rocket } from "lucide-react";
+import { AlertCircle, Brain, Check, Info, Play, GitBranch, Factory, Zap, Settings, Code, Package, BarChart3, CheckCircle, TrendingUp, Rocket, FileText, FileCode, Image } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Mock data for training jobs with multiple models per job
 const mockTrainingJobs = [
@@ -24,40 +25,57 @@ const mockTrainingJobs = [
       program: "Program ABC-123",
       part: "Part X-123"
     },
-    models: [
-      {
-        id: "model-001-1",
-        name: "Defect Detection v1.3 - CNN",
-        type: "CNN",
-        accuracy: 95.2,
-        precision: 92.1,
-        recall: 94.8,
-        f1Score: 93.4,
-        githubSha: "a1b2c3d4e5f6789012345678901234567890abcd",
-        isDeployed: false
-      },
-      {
-        id: "model-001-2", 
-        name: "Defect Detection v1.3 - ResNet",
-        type: "ResNet",
-        accuracy: 93.8,
-        precision: 90.5,
-        recall: 96.2,
-        f1Score: 93.3,
-        githubSha: "b1c2d3e4f5g6789012345678901234567890bcde",
-        isDeployed: true
-      },
-      {
-        id: "model-001-3",
-        name: "Defect Detection v1.3 - EfficientNet",
-        type: "EfficientNet", 
-        accuracy: 96.1,
-        precision: 94.2,
-        recall: 97.8,
-        f1Score: 96.0,
-        githubSha: "c1d2e3f4g5h6789012345678901234567890cdef",
-        isDeployed: false
-      }
+      models: [
+        {
+          id: "model-001-1",
+          name: "Defect Detection v1.3 - CNN",
+          type: "CNN",
+          accuracy: 95.2,
+          precision: 92.1,
+          recall: 94.8,
+          f1Score: 93.4,
+          githubSha: "a1b2c3d4e5f6789012345678901234567890abcd",
+          isDeployed: false,
+          trainingFiles: [
+            { name: "training_config.yaml", url: "https://example.com/presigned/config-001-1.yaml", type: "yaml" },
+            { name: "training_metrics.json", url: "https://example.com/presigned/metrics-001-1.json", type: "json" },
+            { name: "confusion_matrix.png", url: "https://example.com/presigned/confusion-001-1.png", type: "image" },
+            { name: "loss_curve.png", url: "https://example.com/presigned/loss-001-1.png", type: "image" }
+          ]
+        },
+        {
+          id: "model-001-2", 
+          name: "Defect Detection v1.3 - ResNet",
+          type: "ResNet",
+          accuracy: 93.8,
+          precision: 90.5,
+          recall: 96.2,
+          f1Score: 93.3,
+          githubSha: "b1c2d3e4f5g6789012345678901234567890bcde",
+          isDeployed: true,
+          trainingFiles: [
+            { name: "training_config.yaml", url: "https://example.com/presigned/config-001-2.yaml", type: "yaml" },
+            { name: "training_log.json", url: "https://example.com/presigned/log-001-2.json", type: "json" },
+            { name: "roc_curve.png", url: "https://example.com/presigned/roc-001-2.png", type: "image" }
+          ]
+        },
+        {
+          id: "model-001-3",
+          name: "Defect Detection v1.3 - EfficientNet",
+          type: "EfficientNet", 
+          accuracy: 96.1,
+          precision: 94.2,
+          recall: 97.8,
+          f1Score: 96.0,
+          githubSha: "c1d2e3f4g5h6789012345678901234567890cdef",
+          isDeployed: false,
+          trainingFiles: [
+            { name: "hyperparameters.yaml", url: "https://example.com/presigned/hyper-001-3.yaml", type: "yaml" },
+            { name: "validation_results.json", url: "https://example.com/presigned/valid-001-3.json", type: "json" },
+            { name: "accuracy_plot.png", url: "https://example.com/presigned/accuracy-001-3.png", type: "image" },
+            { name: "feature_importance.png", url: "https://example.com/presigned/features-001-3.png", type: "image" }
+          ]
+        }
     ]
   },
   {
@@ -682,6 +700,56 @@ export const ModelTraining: React.FC = () => {
                               <ModelMetrics model={model} />
                             </DialogContent>
                           </Dialog>
+
+                          {model.trainingFiles && model.trainingFiles.length > 0 && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="flex-1 text-xs">
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Training Details
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>{model.name} - Training Files</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="h-[400px] pr-4">
+                                  <div className="space-y-2">
+                                    {model.trainingFiles.map((file: any, idx: number) => {
+                                      const getFileIcon = (type: string) => {
+                                        switch (type) {
+                                          case 'json':
+                                            return <FileCode className="h-4 w-4 text-blue-500" />;
+                                          case 'yaml':
+                                            return <FileText className="h-4 w-4 text-purple-500" />;
+                                          case 'image':
+                                            return <Image className="h-4 w-4 text-green-500" />;
+                                          default:
+                                            return <FileText className="h-4 w-4 text-gray-500" />;
+                                        }
+                                      };
+
+                                      return (
+                                        <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
+                                          <div className="flex items-center gap-3">
+                                            {getFileIcon(file.type)}
+                                            <span className="font-medium text-sm">{file.name}</span>
+                                          </div>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => window.open(file.url, '_blank')}
+                                          >
+                                            Open
+                                          </Button>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </ScrollArea>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                           
                           <Button 
                             size="sm" 
