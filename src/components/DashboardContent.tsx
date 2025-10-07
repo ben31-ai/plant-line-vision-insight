@@ -6,7 +6,7 @@ import { MLInsights } from "./MLInsights";
 import { ProductDetail } from "./ProductDetail";
 import { productDetails } from "@/utils/mockData";
 import { Input } from "./ui/input";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 interface DashboardContentProps {
   products: any[];
@@ -49,8 +49,17 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 placeholder="Search by ID or Serial Number"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-9"
+                className="pl-9 pr-9"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => onSearchChange("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
           <ProductsList products={products} onSelectProduct={onSelectProduct} />
