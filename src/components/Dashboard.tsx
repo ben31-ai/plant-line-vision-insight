@@ -38,6 +38,7 @@ export const Dashboard = () => {
   const [metrics, setMetrics] = useState(getMetrics(products));
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { toast } = useToast();
   
   // Simulate loading time
@@ -150,6 +151,18 @@ export const Dashboard = () => {
       return newAlerts;
     });
   };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  // Filter products based on search query
+  const filteredProducts = searchQuery
+    ? products.filter(product =>
+        product.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.serialNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : products;
   
   if (isLoading) {
     return <LoadingPage />;
@@ -195,11 +208,13 @@ export const Dashboard = () => {
         
         {/* Dashboard Content */}
         <DashboardContent
-          products={products}
+          products={filteredProducts}
           metrics={metrics}
           onSelectProduct={handleSelectProduct}
           selectedProductId={selectedProductId}
           onCloseProductDetail={handleCloseProductDetail}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
         />
       </div>
       <Footer />
