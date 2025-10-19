@@ -1,6 +1,8 @@
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { EChartRenderer } from "../charts/EChartRenderer";
+import { Skeleton } from "../ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 interface ClusteringAnalysisProps {
   region: string;
@@ -9,6 +11,17 @@ interface ClusteringAnalysisProps {
 export const ClusteringAnalysis: React.FC<ClusteringAnalysisProps> = ({
   region,
 }) => {
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  useEffect(() => {
+    setIsCalculating(true);
+    const timer = setTimeout(() => {
+      setIsCalculating(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, [region]);
+
   const clusteringData = useMemo(() => {
     // Generate synthetic clustering data based on region
     // Using a default time range since we removed the time range selector
@@ -123,6 +136,28 @@ export const ClusteringAnalysis: React.FC<ClusteringAnalysisProps> = ({
       bottom: 10
     }
   };
+
+  if (isCalculating) {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-muted-foreground">
+          Region: <span className="font-medium capitalize">{region}</span>
+        </div>
+        <div className="flex flex-col items-center justify-center h-[500px] space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <div className="text-center space-y-2">
+            <p className="text-lg font-medium">Calculating Clusters</p>
+            <p className="text-sm text-muted-foreground">Analyzing data patterns...</p>
+          </div>
+          <div className="w-full max-w-xs space-y-2">
+            <Skeleton className="h-2 w-full" />
+            <Skeleton className="h-2 w-3/4 mx-auto" />
+            <Skeleton className="h-2 w-1/2 mx-auto" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
