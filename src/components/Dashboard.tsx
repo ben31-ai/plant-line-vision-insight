@@ -14,8 +14,10 @@ import { LoadingPage } from "./LoadingPage";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { RotateCcw } from "lucide-react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export const Dashboard = () => {
+  const { settings } = useSettings();
   const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
   
@@ -83,7 +85,7 @@ export const Dashboard = () => {
         }
         
         console.log('Dashboard auto-refreshed at:', new Date().toLocaleTimeString());
-      }, 10000); // 10 seconds
+      }, settings.autoRefreshInterval * 1000); // Convert seconds to milliseconds
     }
     
     return () => {
@@ -91,7 +93,7 @@ export const Dashboard = () => {
         clearInterval(intervalId);
       }
     };
-  }, [autoRefresh, startDate, endDate, filters]);
+  }, [autoRefresh, startDate, endDate, filters, settings.autoRefreshInterval]);
   
   // Update products and metrics when filters or date range change
   useEffect(() => {
@@ -183,7 +185,7 @@ export const Dashboard = () => {
               />
               <Label htmlFor="auto-refresh" className="flex items-center gap-2 text-sm">
                 <RotateCcw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-                Auto-refresh (10s)
+                Auto-refresh ({settings.autoRefreshInterval}s)
               </Label>
             </div>
           </div>

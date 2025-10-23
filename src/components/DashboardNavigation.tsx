@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Brain, BarChart, Bell } from "lucide-react";
+import { Brain, BarChart, Bell, Settings } from "lucide-react";
 
 export const DashboardNavigation: React.FC = () => {
   return (
@@ -23,6 +23,12 @@ export const DashboardNavigation: React.FC = () => {
         <Button variant="outline" className="gap-2">
           <Bell className="h-4 w-4" />
           Manage Alerts
+        </Button>
+      </Link>
+      <Link to="/settings">
+        <Button variant="outline" className="gap-2">
+          <Settings className="h-4 w-4" />
+          Settings
         </Button>
       </Link>
     </div>
