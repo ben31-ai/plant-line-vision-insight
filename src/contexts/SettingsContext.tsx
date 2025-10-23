@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface Settings {
   autoRefreshInterval: number; // in seconds
   trendThreshold: number; // percentage
+  trendWatchPeriod: number; // in hours
 }
 
 interface SettingsContextType {
@@ -13,6 +14,7 @@ interface SettingsContextType {
 const defaultSettings: Settings = {
   autoRefreshInterval: 30,
   trendThreshold: 5,
+  trendWatchPeriod: 24,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

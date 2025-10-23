@@ -3,7 +3,7 @@ import React from "react";
 import { Logo } from "./Logo";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Link } from "react-router-dom";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
@@ -19,6 +19,13 @@ export const Header = () => {
           </Link>
           
           <div className="flex items-center gap-4">
+            <Link to="/settings">
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Settings</span>
+              </Button>
+            </Link>
+            
             <Button
               variant="ghost"
               size="icon"

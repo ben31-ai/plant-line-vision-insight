@@ -24,7 +24,7 @@ const SettingsPage = () => {
   };
 
   const handleReset = () => {
-    const defaults = { autoRefreshInterval: 30, trendThreshold: 5 };
+    const defaults = { autoRefreshInterval: 30, trendThreshold: 5, trendWatchPeriod: 24 };
     setLocalSettings(defaults);
     updateSettings(defaults);
     toast({
@@ -126,6 +126,48 @@ const SettingsPage = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   Range: 1% to 50% - Lower values show more sensitive trends
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Trend Watch Period</CardTitle>
+              <CardDescription>
+                Set the time period in hours for trend analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Watch last {localSettings.trendWatchPeriod} hours</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="168"
+                    value={localSettings.trendWatchPeriod}
+                    onChange={(e) =>
+                      setLocalSettings({
+                        ...localSettings,
+                        trendWatchPeriod: parseInt(e.target.value) || 24,
+                      })
+                    }
+                    className="w-24"
+                  />
+                </div>
+                <Slider
+                  value={[localSettings.trendWatchPeriod]}
+                  onValueChange={([value]) =>
+                    setLocalSettings({ ...localSettings, trendWatchPeriod: value })
+                  }
+                  min={1}
+                  max={168}
+                  step={1}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Range: 1 to 168 hours (1 week)
                 </p>
               </div>
             </CardContent>
