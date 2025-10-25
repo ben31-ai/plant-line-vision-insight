@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-// Mock data for models by filter combination
-const mockModelsByFilter = [
+// Mock data for pipelines by configuration
+const mockPipelinesByConfig = [
   {
     filters: {
       plant: "Plant A - North",
@@ -20,52 +20,137 @@ const mockModelsByFilter = [
       program: "Program ABC-123",
       part: "Part X-123"
     },
-    models: [
+    pipelines: [
       {
-        id: "model-001-1",
-        name: "Defect Detection v1.3 - CNN",
-        type: "CNN",
-        version: "v1.3",
-        accuracy: 95.2,
-        trainedDate: "2025-04-01T14:15:00",
-        githubSha: "a1b2c3d4e5f6789012345678901234567890abcd",
-        isDeployed: false,
-        status: "trained"
+        id: "pipeline-001",
+        name: "Quality Control Pipeline v2.0",
+        isActive: true,
+        steps: [
+          {
+            id: "step-001-1",
+            name: "Defect Detection",
+            order: 1,
+            deployedModel: {
+              id: "model-001-2",
+              name: "Defect Detection CNN",
+              type: "CNN",
+              version: "v1.3",
+              accuracy: 95.2,
+              trainedDate: "2025-04-01T14:15:00",
+              deployedDate: "2025-04-01T15:30:00",
+              githubSha: "a1b2c3d4e5f6789012345678901234567890abcd"
+            },
+            availableVersions: [
+              {
+                id: "model-001-3",
+                name: "Defect Detection ResNet",
+                type: "ResNet",
+                version: "v1.4",
+                accuracy: 96.1,
+                trainedDate: "2025-04-05T10:00:00",
+                githubSha: "b1c2d3e4f5g6789012345678901234567890bcde",
+                status: "trained"
+              },
+              {
+                id: "model-001-1",
+                name: "Defect Detection CNN",
+                type: "CNN",
+                version: "v1.2",
+                accuracy: 93.8,
+                trainedDate: "2025-03-15T09:00:00",
+                githubSha: "c1d2e3f4g5h6789012345678901234567890cdef",
+                status: "retired"
+              }
+            ]
+          },
+          {
+            id: "step-001-2",
+            name: "Classification",
+            order: 2,
+            deployedModel: {
+              id: "model-002-1",
+              name: "Multi-Class Classifier",
+              type: "EfficientNet",
+              version: "v2.1",
+              accuracy: 92.5,
+              trainedDate: "2025-04-02T11:00:00",
+              deployedDate: "2025-04-02T14:00:00",
+              githubSha: "d1e2f3g4h5i6789012345678901234567890defg"
+            },
+            availableVersions: [
+              {
+                id: "model-002-2",
+                name: "Multi-Class Classifier",
+                type: "EfficientNet",
+                version: "v2.2",
+                accuracy: 93.1,
+                trainedDate: "2025-04-06T09:00:00",
+                githubSha: "e1f2g3h4i5j6789012345678901234567890efgh",
+                status: "trained"
+              },
+              {
+                id: "model-002-3",
+                name: "Multi-Class Classifier",
+                type: "ResNet",
+                version: "v2.0",
+                accuracy: 91.2,
+                trainedDate: "2025-03-20T10:00:00",
+                githubSha: "f1g2h3i4j5k6789012345678901234567890fghi",
+                status: "retired"
+              }
+            ]
+          },
+          {
+            id: "step-001-3",
+            name: "Quality Prediction",
+            order: 3,
+            deployedModel: {
+              id: "model-003-1",
+              name: "Quality Score Predictor",
+              type: "LSTM",
+              version: "v1.0",
+              accuracy: 88.7,
+              trainedDate: "2025-03-28T13:00:00",
+              deployedDate: "2025-03-29T10:00:00",
+              githubSha: "g1h2i3j4k5l6789012345678901234567890ghij"
+            },
+            availableVersions: [
+              {
+                id: "model-003-2",
+                name: "Quality Score Predictor",
+                type: "LSTM",
+                version: "v1.1",
+                accuracy: null,
+                trainedDate: "2025-04-07T14:00:00",
+                githubSha: "h1i2j3k4l5m6789012345678901234567890hijk",
+                status: "training"
+              }
+            ]
+          }
+        ]
       },
       {
-        id: "model-001-2", 
-        name: "Defect Detection v1.3 - ResNet",
-        type: "ResNet",
-        version: "v1.3",
-        accuracy: 93.8,
-        trainedDate: "2025-04-01T14:15:00",
-        deployedDate: "2025-04-01T15:30:00",
-        githubSha: "b1c2d3e4f5g6789012345678901234567890bcde",
-        isDeployed: true,
-        status: "deployed"
-      },
-      {
-        id: "model-001-3",
-        name: "Defect Detection v1.3 - EfficientNet",
-        type: "EfficientNet", 
-        version: "v1.3",
-        accuracy: 96.1,
-        trainedDate: "2025-04-01T14:15:00",
-        githubSha: "c1d2e3f4g5h6789012345678901234567890cdef",
-        isDeployed: false,
-        status: "trained"
-      },
-      {
-        id: "model-001-4",
-        name: "Defect Detection v1.2 - ResNet",
-        type: "ResNet",
-        version: "v1.2",
-        accuracy: 91.5,
-        trainedDate: "2025-03-15T10:00:00",
-        deployedDate: "2025-03-16T09:00:00",
-        githubSha: "f1g2h3i4j5k6789012345678901234567890fghi",
-        isDeployed: false,
-        status: "retired"
+        id: "pipeline-002",
+        name: "Legacy Pipeline v1.5",
+        isActive: false,
+        steps: [
+          {
+            id: "step-002-1",
+            name: "Basic Detection",
+            order: 1,
+            deployedModel: {
+              id: "model-004-1",
+              name: "Basic Defect Detector",
+              type: "CNN",
+              version: "v1.0",
+              accuracy: 87.3,
+              trainedDate: "2025-02-15T10:00:00",
+              deployedDate: "2025-02-16T09:00:00",
+              githubSha: "i1j2k3l4m5n6789012345678901234567890ijkl"
+            },
+            availableVersions: []
+          }
+        ]
       }
     ]
   },
@@ -73,41 +158,68 @@ const mockModelsByFilter = [
     filters: {
       plant: "Plant B - South",
       line: "Line 1",
-      station: "Station 4", 
+      station: "Station 4",
       program: "Program XYZ-456",
       part: "Part Y-456"
     },
-    models: [
+    pipelines: [
       {
-        id: "model-002-1",
-        name: "Quality Prediction v2.1 - LSTM",
-        type: "LSTM",
-        version: "v2.1",
-        accuracy: null, // Still training
-        trainedDate: "2025-04-06T11:45:00",
-        githubSha: "d2e3f4g5h6i7789012345678901234567890defg",
-        isDeployed: false,
-        status: "training"
-      },
-      {
-        id: "model-002-2",
-        name: "Quality Prediction v2.0 - LSTM",
-        type: "LSTM",
-        version: "v2.0",
-        accuracy: 89.2,
-        trainedDate: "2025-03-20T09:00:00",
-        deployedDate: "2025-03-20T10:00:00",
-        githubSha: "e3f4g5h6i7j8789012345678901234567890efgh",
-        isDeployed: true,
-        status: "deployed"
+        id: "pipeline-003",
+        name: "Inspection Pipeline v3.0",
+        isActive: true,
+        steps: [
+          {
+            id: "step-003-1",
+            name: "Surface Analysis",
+            order: 1,
+            deployedModel: {
+              id: "model-005-1",
+              name: "Surface Defect Analyzer",
+              type: "ResNet",
+              version: "v2.0",
+              accuracy: 94.8,
+              trainedDate: "2025-04-03T12:00:00",
+              deployedDate: "2025-04-04T08:00:00",
+              githubSha: "j1k2l3m4n5o6789012345678901234567890jklm"
+            },
+            availableVersions: [
+              {
+                id: "model-005-2",
+                name: "Surface Defect Analyzer",
+                type: "ResNet",
+                version: "v2.1",
+                accuracy: 95.4,
+                trainedDate: "2025-04-06T15:00:00",
+                githubSha: "k1l2m3n4o5p6789012345678901234567890klmn",
+                status: "trained"
+              }
+            ]
+          },
+          {
+            id: "step-003-2",
+            name: "Dimension Check",
+            order: 2,
+            deployedModel: {
+              id: "model-006-1",
+              name: "Dimension Validator",
+              type: "CNN",
+              version: "v1.5",
+              accuracy: 97.2,
+              trainedDate: "2025-04-01T09:00:00",
+              deployedDate: "2025-04-02T11:00:00",
+              githubSha: "l1m2n3o4p5q6789012345678901234567890lmno"
+            },
+            availableVersions: []
+          }
+        ]
       }
     ]
   }
 ];
 
 export const DeployedModels: React.FC = () => {
-  const [selectedModel, setSelectedModel] = useState<any>(null);
-  const [targetConfig, setTargetConfig] = useState<any>({});
+  const [selectedStep, setSelectedStep] = useState<any>(null);
+  const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "In progress";
@@ -125,15 +237,12 @@ export const DeployedModels: React.FC = () => {
     return sha.substring(0, 7);
   };
 
-  const getModelStatusBadge = (status: string, isDeployed: boolean) => {
+  const getModelStatusBadge = (status: string) => {
     if (status === "training") {
       return <Badge className="bg-blue-500"><Info className="h-3 w-3 mr-1" /> Training</Badge>;
     }
-    if (isDeployed) {
-      return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" /> Deployed</Badge>;
-    }
     if (status === "trained") {
-      return <Badge className="bg-amber-500"><Check className="h-3 w-3 mr-1" /> Trained</Badge>;
+      return <Badge className="bg-amber-500"><Check className="h-3 w-3 mr-1" /> Ready</Badge>;
     }
     if (status === "retired") {
       return <Badge variant="outline" className="text-gray-500"><AlertCircle className="h-3 w-3 mr-1" /> Retired</Badge>;
@@ -141,22 +250,19 @@ export const DeployedModels: React.FC = () => {
     return <Badge variant="outline">{status}</Badge>;
   };
 
-  const handleDeployToConfig = (model: any) => {
-    setSelectedModel(model);
+  const handleDeployVersion = (step: any, version: any) => {
+    setSelectedStep(step);
+    setSelectedVersion(version);
     setIsDeployDialogOpen(true);
   };
 
   const handleConfirmDeploy = () => {
-    if (selectedModel && targetConfig.plant) {
-      toast.success(`Model "${selectedModel.name}" deployment initiated to ${targetConfig.plant} - ${targetConfig.line} - ${targetConfig.station}`);
+    if (selectedStep && selectedVersion) {
+      toast.success(`Model "${selectedVersion.name}" (${selectedVersion.version}) will be deployed to step "${selectedStep.name}"`);
       setIsDeployDialogOpen(false);
-      setSelectedModel(null);
-      setTargetConfig({});
+      setSelectedStep(null);
+      setSelectedVersion(null);
     }
-  };
-
-  const getAvailableConfigurations = () => {
-    return mockModelsByFilter.map(config => config.filters);
   };
 
   return (
@@ -165,15 +271,15 @@ export const DeployedModels: React.FC = () => {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center">
             <TrendingUp className="h-4 w-4 mr-2" />
-            Model Status by Configuration
+            Pipelines by Configuration
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {mockModelsByFilter.map((config, index) => (
+            {mockPipelinesByConfig.map((config, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-4">
                 {/* Configuration Details */}
-                <div className="bg-gray-50 rounded-lg p-3">
+                <div className="bg-muted rounded-lg p-3">
                   <h4 className="text-sm font-medium mb-2 flex items-center">
                     <Settings className="h-4 w-4 mr-1" />
                     Configuration
@@ -207,97 +313,123 @@ export const DeployedModels: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Models Table */}
-                <div>
-                  <h4 className="text-sm font-medium mb-3 flex items-center">
-                    <Brain className="h-4 w-4 mr-1" />
-                    Models ({config.models.length})
-                  </h4>
-                  <div className="border rounded-lg">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-xs">Model Name</TableHead>
-                          <TableHead className="text-xs">Type</TableHead>
-                          <TableHead className="text-xs">Version</TableHead>
-                          <TableHead className="text-xs">Accuracy</TableHead>
-                          <TableHead className="text-xs">Status</TableHead>
-                          <TableHead className="text-xs">Trained Date</TableHead>
-                          <TableHead className="text-xs">SHA</TableHead>
-                          <TableHead className="text-xs">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {config.models.map((model) => (
-                          <TableRow key={model.id}>
-                            <TableCell className="text-xs font-medium">{model.name}</TableCell>
-                            <TableCell className="text-xs">{model.type}</TableCell>
-                            <TableCell className="text-xs">
-                              <Badge variant="outline" className="text-xs">
-                                {model.version}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              {model.accuracy ? `${model.accuracy}%` : "Training..."}
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              {getModelStatusBadge(model.status, model.isDeployed)}
-                            </TableCell>
-                            <TableCell className="text-xs">{formatDate(model.trainedDate)}</TableCell>
-                            <TableCell className="text-xs">
-                              <code className="bg-gray-100 px-1 rounded font-mono text-xs">
-                                {formatSha(model.githubSha)}
-                              </code>
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              {(model.status === "trained" || model.isDeployed) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDeployToConfig(model)}
-                                  className="h-7 text-xs"
-                                >
-                                  <Copy className="h-3 w-3 mr-1" />
-                                  Deploy
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
+                {/* Pipelines */}
+                {config.pipelines.map((pipeline) => (
+                  <div key={pipeline.id} className="border rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium flex items-center gap-2">
+                        <Brain className="h-4 w-4" />
+                        {pipeline.name}
+                        {pipeline.isActive && (
+                          <Badge className="bg-green-500">
+                            <CheckCircle className="h-3 w-3 mr-1" /> Active
+                          </Badge>
+                        )}
+                      </h4>
+                    </div>
 
-                {/* Summary Stats */}
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="font-medium text-blue-700">
-                        {config.models.filter(m => m.isDeployed).length}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Deployed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-green-700">
-                        {config.models.filter(m => m.status === "trained" && !m.isDeployed).length}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Ready to Deploy</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-amber-700">
-                        {config.models.filter(m => m.status === "training").length}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Training</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-gray-700">
-                        {config.models.filter(m => m.accuracy).reduce((max, m) => Math.max(max, m.accuracy || 0), 0)}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">Best Accuracy</div>
+                    {/* Pipeline Steps */}
+                    <div className="space-y-3">
+                      {pipeline.steps.map((step) => (
+                        <div key={step.id} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                Step {step.order}
+                              </Badge>
+                              <span className="text-sm font-medium">{step.name}</span>
+                            </div>
+                          </div>
+
+                          {/* Deployed Model */}
+                          <div className="bg-green-50 border border-green-200 rounded p-2">
+                            <div className="text-xs font-medium text-green-700 mb-1 flex items-center">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Currently Deployed
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Model:</span>
+                                <span className="ml-1 font-medium">{step.deployedModel.name}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Type:</span>
+                                <span className="ml-1 font-medium">{step.deployedModel.type}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Version:</span>
+                                <Badge variant="outline" className="ml-1 text-xs">
+                                  {step.deployedModel.version}
+                                </Badge>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Accuracy:</span>
+                                <span className="ml-1 font-medium">{step.deployedModel.accuracy}%</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Deployed:</span>
+                                <span className="ml-1 font-medium">{formatDate(step.deployedModel.deployedDate)}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">SHA:</span>
+                                <code className="ml-1 bg-gray-100 px-1 rounded font-mono text-xs">
+                                  {formatSha(step.deployedModel.githubSha)}
+                                </code>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Available Versions */}
+                          {step.availableVersions.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-medium text-muted-foreground">
+                                Available Versions ({step.availableVersions.length})
+                              </div>
+                              <div className="space-y-2">
+                                {step.availableVersions.map((version) => (
+                                  <div
+                                    key={version.id}
+                                    className="bg-muted rounded p-2 flex items-center justify-between"
+                                  >
+                                    <div className="grid grid-cols-3 gap-2 text-xs flex-1">
+                                      <div>
+                                        <span className="text-muted-foreground">Model:</span>
+                                        <span className="ml-1 font-medium">{version.name}</span>
+                                      </div>
+                                      <div>
+                                        <Badge variant="outline" className="text-xs">
+                                          {version.version}
+                                        </Badge>
+                                        <span className="ml-2">{getModelStatusBadge(version.status)}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Accuracy:</span>
+                                        <span className="ml-1 font-medium">
+                                          {version.accuracy ? `${version.accuracy}%` : "Training..."}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {version.status === "trained" && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleDeployVersion(step, version)}
+                                        className="h-7 text-xs ml-2"
+                                      >
+                                        <Copy className="h-3 w-3 mr-1" />
+                                        Deploy
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
             ))}
           </div>
@@ -308,87 +440,49 @@ export const DeployedModels: React.FC = () => {
       <Dialog open={isDeployDialogOpen} onOpenChange={setIsDeployDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Deploy Model to Configuration</DialogTitle>
+            <DialogTitle>Deploy Model Version</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium">Selected Model</Label>
-              <div className="mt-1 p-2 bg-gray-50 rounded text-sm">
-                {selectedModel?.name} ({selectedModel?.version})
+              <Label className="text-sm font-medium">Target Step</Label>
+              <div className="mt-1 p-2 bg-muted rounded text-sm">
+                {selectedStep?.name}
               </div>
             </div>
             
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Target Configuration</Label>
-              
-              <div>
-                <Label className="text-xs">Plant</Label>
-                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, plant: value}))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select plant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(new Set(getAvailableConfigurations().map(c => c.plant))).map(plant => (
-                      <SelectItem key={plant} value={plant} className="text-xs">{plant}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div>
+              <Label className="text-sm font-medium">Selected Model Version</Label>
+              <div className="mt-1 p-3 bg-muted rounded space-y-1 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Model:</span>
+                  <span className="ml-2 font-medium">{selectedVersion?.name}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Version:</span>
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {selectedVersion?.version}
+                  </Badge>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="ml-2 font-medium">{selectedVersion?.type}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Accuracy:</span>
+                  <span className="ml-2 font-medium">{selectedVersion?.accuracy}%</span>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <Label className="text-xs">Line</Label>
-                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, line: value}))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select line" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(new Set(getAvailableConfigurations().map(c => c.line))).map(line => (
-                      <SelectItem key={line} value={line} className="text-xs">{line}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Station</Label>
-                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, station: value}))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select station" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(new Set(getAvailableConfigurations().map(c => c.station))).map(station => (
-                      <SelectItem key={station} value={station} className="text-xs">{station}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Program</Label>
-                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, program: value}))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select program" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(new Set(getAvailableConfigurations().map(c => c.program))).map(program => (
-                      <SelectItem key={program} value={program} className="text-xs">{program}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Part</Label>
-                <Select onValueChange={(value) => setTargetConfig(prev => ({...prev, part: value}))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select part" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from(new Set(getAvailableConfigurations().map(c => c.part))).map(part => (
-                      <SelectItem key={part} value={part} className="text-xs">{part}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div>
+                  <div className="font-medium text-amber-900">Deployment Warning</div>
+                  <div className="text-amber-700 mt-1">
+                    This will replace the currently deployed model for this step. Make sure you have tested this version before deploying to production.
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -403,9 +497,8 @@ export const DeployedModels: React.FC = () => {
               <Button
                 size="sm"
                 onClick={handleConfirmDeploy}
-                disabled={!targetConfig.plant || !targetConfig.line || !targetConfig.station}
               >
-                Deploy Model
+                Deploy Version
               </Button>
             </div>
           </div>
