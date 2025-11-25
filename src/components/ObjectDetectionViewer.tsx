@@ -11,6 +11,7 @@ import { Upload, Eye, Zap } from "lucide-react";
 interface DetectionResult {
   class: string;
   confidence: number;
+  text: string;
   bbox: {
     x: number;
     y: number;
@@ -54,23 +55,32 @@ export const ObjectDetectionViewer = () => {
     image: "",
     detections: [
       {
-        class: "person",
+        class: "text",
         confidence: 0.95,
-        bbox: { x: 100, y: 50, width: 120, height: 200 }
+        text: "ERR-2024-001",
+        bbox: { x: 100, y: 50, width: 120, height: 30 }
       },
       {
-        class: "car",
+        class: "text",
         confidence: 0.87,
-        bbox: { x: 300, y: 150, width: 180, height: 100 }
+        text: "SN: 12345-ABCD",
+        bbox: { x: 300, y: 150, width: 150, height: 25 }
       },
       {
-        class: "bicycle",
+        class: "text",
+        confidence: 0.92,
+        text: "Part #: XYZ-789",
+        bbox: { x: 50, y: 200, width: 130, height: 28 }
+      },
+      {
+        class: "text",
         confidence: 0.73,
-        bbox: { x: 50, y: 200, width: 80, height: 120 }
+        text: "Batch: 2024-W47",
+        bbox: { x: 400, y: 80, width: 140, height: 26 }
       }
     ],
     processingTime: 245,
-    modelName: "YOLOv8-nano"
+    modelName: "OCR-TextDetection-v2"
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,7 +275,7 @@ export const ObjectDetectionViewer = () => {
                         return (
                           <div 
                             key={index}
-                            className="flex items-center justify-between p-3 rounded-lg border transition-all duration-200 cursor-pointer"
+                            className="p-3 rounded-lg border transition-all duration-200 cursor-pointer space-y-2"
                             style={{
                               borderColor: isHovered ? colors.border : undefined,
                               backgroundColor: isHovered ? colors.bg : undefined,
@@ -274,26 +284,30 @@ export const ObjectDetectionViewer = () => {
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
                           >
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                                style={{ backgroundColor: colors.border }}
-                              >
-                                {index + 1}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div 
+                                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                                  style={{ backgroundColor: colors.border }}
+                                >
+                                  {index + 1}
+                                </div>
+                                <Switch 
+                                  checked={classVisibility[detection.class] || false}
+                                  onCheckedChange={() => toggleClassVisibility(detection.class)}
+                                />
                               </div>
-                              <Switch 
-                                checked={classVisibility[detection.class] || false}
-                                onCheckedChange={() => toggleClassVisibility(detection.class)}
-                              />
-                              <span className="font-medium capitalize text-sm">
-                                {detection.class}
-                              </span>
+                              <div className="text-right">
+                                <div className="text-sm font-medium">
+                                  {(detection.confidence * 100).toFixed(1)}%
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm font-medium">
-                                {(detection.confidence * 100).toFixed(1)}%
+                            <div className="pl-9">
+                              <div className="text-sm font-medium break-words">
+                                {detection.text}
                               </div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-muted-foreground mt-1">
                                 {detection.bbox.width}×{detection.bbox.height}px
                               </div>
                             </div>
