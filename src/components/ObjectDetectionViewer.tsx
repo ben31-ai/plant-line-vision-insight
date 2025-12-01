@@ -303,11 +303,20 @@ export const ObjectDetectionViewer = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="pl-9">
+                            <div className="pl-9 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs capitalize"
+                                  style={{ borderColor: colors.border }}
+                                >
+                                  {detection.class}
+                                </Badge>
+                              </div>
                               <div className="text-sm font-medium break-words">
                                 {detection.text}
                               </div>
-                              <div className="text-xs text-muted-foreground mt-1">
+                              <div className="text-xs text-muted-foreground">
                                 {detection.bbox.width}×{detection.bbox.height}px
                               </div>
                             </div>
