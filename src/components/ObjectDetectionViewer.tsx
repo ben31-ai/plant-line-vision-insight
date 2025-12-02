@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,7 +6,7 @@ import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { ScrollArea } from "./ui/scroll-area";
-import { Upload, Eye, Zap } from "lucide-react";
+import { Upload, Eye, Zap, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 interface DetectionResult {
   class: string;
@@ -35,6 +35,39 @@ export const ObjectDetectionViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<string, boolean>>({});
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 4));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    }
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => Math.max(0.5, Math.min(4, prev + delta)));
+  };
 
   // Color palette for different classes
   const getClassColor = (className: string) => {
@@ -183,54 +216,89 @@ export const ObjectDetectionViewer = () => {
                 </p>
               </div>
             ) : (
-              <div className="relative h-full flex items-center justify-center">
-                <div className="relative max-w-full max-h-full">
-                  <img
-                    src={imagePreview}
-                    alt="Input for detection"
-                    className="max-w-full max-h-[70vh] object-contain rounded-lg border shadow-lg"
-                  />
-                  
-                  {/* Overlay detection boxes if inference is done */}
-                  {inferenceData && (
-                    <div className="absolute inset-0">
-                      {inferenceData.detections
-                        .filter(detection => classVisibility[detection.class])
-                        .map((detection, index) => {
-                          const colors = getClassColor(detection.class);
-                          const isHovered = hoveredIndex === index;
-                          
-                          return (
-                            <div
-                              key={index}
-                              className="absolute transition-all duration-200"
-                              style={{
-                                left: `${(detection.bbox.x / 640) * 100}%`,
-                                top: `${(detection.bbox.y / 480) * 100}%`,
-                                width: `${(detection.bbox.width / 640) * 100}%`,
-                                height: `${(detection.bbox.height / 480) * 100}%`,
-                                border: `${isHovered ? '3' : '2'}px solid ${colors.border}`,
-                                backgroundColor: colors.bg,
-                                boxShadow: isHovered ? `0 0 15px ${colors.border}` : 'none',
-                                zIndex: isHovered ? 10 : 1,
-                              }}
-                              onMouseEnter={() => setHoveredIndex(index)}
-                              onMouseLeave={() => setHoveredIndex(null)}
-                            >
-                              <div 
-                                className="absolute -top-8 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg"
-                                style={{ 
-                                  backgroundColor: colors.badge,
-                                  border: `2px solid ${colors.border}`
-                                }}
-                              >
-                                {index + 1}
-                              </div>
-                            </div>
-                          );
-                        })}
+              <div className="relative h-full flex flex-col">
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoom <= 0.5}>
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleZoomIn} disabled={zoom >= 4}>
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleResetZoom}>
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* Image Container */}
+                <div 
+                  ref={containerRef}
+                  className="relative flex-1 overflow-hidden rounded-lg border cursor-grab active:cursor-grabbing"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onWheel={handleWheel}
+                >
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center transition-transform duration-100"
+                    style={{
+                      transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                    }}
+                  >
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Input for detection"
+                        className="max-w-full max-h-[65vh] object-contain shadow-lg"
+                        draggable={false}
+                      />
+                      
+                      {/* Overlay detection boxes if inference is done */}
+                      {inferenceData && (
+                        <div className="absolute inset-0">
+                          {inferenceData.detections
+                            .filter(detection => classVisibility[detection.class])
+                            .map((detection, index) => {
+                              const colors = getClassColor(detection.class);
+                              const isHovered = hoveredIndex === index;
+                              
+                              return (
+                                <div
+                                  key={index}
+                                  className="absolute transition-all duration-200"
+                                  style={{
+                                    left: `${(detection.bbox.x / 640) * 100}%`,
+                                    top: `${(detection.bbox.y / 480) * 100}%`,
+                                    width: `${(detection.bbox.width / 640) * 100}%`,
+                                    height: `${(detection.bbox.height / 480) * 100}%`,
+                                    border: `${isHovered ? '3' : '2'}px solid ${colors.border}`,
+                                    backgroundColor: colors.bg,
+                                    boxShadow: isHovered ? `0 0 15px ${colors.border}` : 'none',
+                                    zIndex: isHovered ? 10 : 1,
+                                  }}
+                                  onMouseEnter={() => setHoveredIndex(index)}
+                                  onMouseLeave={() => setHoveredIndex(null)}
+                                >
+                                  <div 
+                                    className="absolute -top-8 -left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                                    style={{ 
+                                      backgroundColor: colors.badge,
+                                      border: `2px solid ${colors.border}`
+                                    }}
+                                  >
+                                    {index + 1}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
