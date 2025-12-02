@@ -11,6 +11,7 @@ import { Upload, Eye, Zap } from "lucide-react";
 interface DetectionResult {
   class: string;
   confidence: number;
+  textConfidence: number;
   text: string;
   bbox: {
     x: number;
@@ -57,24 +58,28 @@ export const ObjectDetectionViewer = () => {
       {
         class: "text",
         confidence: 0.95,
+        textConfidence: 0.92,
         text: "ERR-2024-001",
         bbox: { x: 100, y: 50, width: 120, height: 30 }
       },
       {
         class: "text",
         confidence: 0.87,
+        textConfidence: 0.84,
         text: "SN: 12345-ABCD",
         bbox: { x: 300, y: 150, width: 150, height: 25 }
       },
       {
         class: "text",
         confidence: 0.92,
+        textConfidence: 0.89,
         text: "Part #: XYZ-789",
         bbox: { x: 50, y: 200, width: 130, height: 28 }
       },
       {
         class: "text",
         confidence: 0.73,
+        textConfidence: 0.68,
         text: "Batch: 2024-W47",
         bbox: { x: 400, y: 80, width: 140, height: 26 }
       }
@@ -297,9 +302,12 @@ export const ObjectDetectionViewer = () => {
                                   onCheckedChange={() => toggleClassVisibility(detection.class)}
                                 />
                               </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
-                                  {(detection.confidence * 100).toFixed(1)}%
+                              <div className="text-right space-y-0.5">
+                                <div className="text-xs text-muted-foreground">
+                                  Box: {(detection.confidence * 100).toFixed(1)}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Text: {(detection.textConfidence * 100).toFixed(1)}%
                                 </div>
                               </div>
                             </div>
