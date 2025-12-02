@@ -334,25 +334,41 @@ export const ObjectDetectionViewer = () => {
                     </div>
                   </div>
 
+                  {/* Global Scores */}
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                      <div className="text-xl font-bold text-primary">
+                        {(inferenceData.detections.reduce((sum, d) => sum + d.confidence, 0) / inferenceData.detections.length * 100).toFixed(1)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Avg Box Score</div>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                      <div className="text-xl font-bold text-primary">
+                        {(inferenceData.detections.filter(d => d.textConfidence).reduce((sum, d) => sum + d.textConfidence, 0) / inferenceData.detections.filter(d => d.textConfidence).length * 100).toFixed(1)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Avg Text Score</div>
+                    </div>
+                  </div>
+
                   {/* Detection Statistics */}
-                  <div className="grid grid-cols-1 gap-2 pt-4 border-t">
+                  <div className="grid grid-cols-3 gap-2 pt-4 border-t">
                     <div className="text-center">
                       <div className="text-lg font-bold text-green-600">
                         {inferenceData.detections.filter(d => d.confidence >= 0.9).length}
                       </div>
-                      <div className="text-xs text-muted-foreground">High Conf.</div>
+                      <div className="text-xs text-muted-foreground">High</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-bold text-yellow-600">
                         {inferenceData.detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.9).length}
                       </div>
-                      <div className="text-xs text-muted-foreground">Medium Conf.</div>
+                      <div className="text-xs text-muted-foreground">Medium</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-bold text-red-600">
                         {inferenceData.detections.filter(d => d.confidence < 0.7).length}
                       </div>
-                      <div className="text-xs text-muted-foreground">Low Conf.</div>
+                      <div className="text-xs text-muted-foreground">Low</div>
                     </div>
                   </div>
                 </div>
