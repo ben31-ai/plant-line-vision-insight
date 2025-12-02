@@ -303,10 +303,12 @@ export const ObjectDetectionViewer = () => {
                                 />
                               </div>
                               <div className="text-right space-y-0.5">
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                                  <span className={`w-2 h-2 rounded-full ${detection.confidence >= 0.9 ? 'bg-green-500' : detection.confidence >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'}`} />
                                   Box: {(detection.confidence * 100).toFixed(1)}%
                                 </div>
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                                  <span className={`w-2 h-2 rounded-full ${detection.textConfidence >= 0.9 ? 'bg-green-500' : detection.textConfidence >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'}`} />
                                   Text: {(detection.textConfidence * 100).toFixed(1)}%
                                 </div>
                               </div>
