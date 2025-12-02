@@ -351,24 +351,52 @@ export const ObjectDetectionViewer = () => {
                   </div>
 
                   {/* Detection Statistics */}
-                  <div className="grid grid-cols-3 gap-2 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">
-                        {inferenceData.detections.filter(d => d.confidence >= 0.9).length}
+                  <div className="pt-4 border-t space-y-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Box Confidence</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600">
+                            {inferenceData.detections.filter(d => d.confidence >= 0.9).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">High</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-yellow-600">
+                            {inferenceData.detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.9).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Medium</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-red-600">
+                            {inferenceData.detections.filter(d => d.confidence < 0.7).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Low</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">High</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-yellow-600">
-                        {inferenceData.detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.9).length}
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Text Confidence</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600">
+                            {inferenceData.detections.filter(d => d.textConfidence >= 0.9).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">High</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-yellow-600">
+                            {inferenceData.detections.filter(d => d.textConfidence >= 0.7 && d.textConfidence < 0.9).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Medium</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-red-600">
+                            {inferenceData.detections.filter(d => d.textConfidence && d.textConfidence < 0.7).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Low</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">Medium</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-red-600">
-                        {inferenceData.detections.filter(d => d.confidence < 0.7).length}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Low</div>
                     </div>
                   </div>
                 </div>
