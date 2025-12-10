@@ -25,12 +25,7 @@ interface AnomalyResult {
   id: string;
   name: string;
   score: number;
-  region: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  polygon: { x: number; y: number }[]; // Array of polygon points
 }
 
 interface InferenceData {
@@ -137,19 +132,40 @@ export const ObjectDetectionViewer = () => {
         id: "anomaly-1",
         name: "Surface Scratch",
         score: 0.89,
-        region: { x: 200, y: 250, width: 100, height: 80 }
+        polygon: [
+          { x: 200, y: 250 },
+          { x: 280, y: 240 },
+          { x: 310, y: 290 },
+          { x: 290, y: 340 },
+          { x: 220, y: 330 },
+          { x: 190, y: 280 }
+        ]
       },
       {
         id: "anomaly-2",
         name: "Color Defect",
         score: 0.72,
-        region: { x: 450, y: 300, width: 120, height: 60 }
+        polygon: [
+          { x: 450, y: 300 },
+          { x: 520, y: 290 },
+          { x: 570, y: 320 },
+          { x: 560, y: 370 },
+          { x: 490, y: 380 },
+          { x: 440, y: 350 }
+        ]
       },
       {
         id: "anomaly-3",
         name: "Missing Component",
         score: 0.95,
-        region: { x: 80, y: 350, width: 90, height: 70 }
+        polygon: [
+          { x: 80, y: 350 },
+          { x: 140, y: 340 },
+          { x: 170, y: 380 },
+          { x: 160, y: 420 },
+          { x: 100, y: 430 },
+          { x: 70, y: 390 }
+        ]
       }
     ],
     processingTime: 245,
@@ -309,32 +325,54 @@ export const ObjectDetectionViewer = () => {
                       {/* Overlay detection boxes if inference is done */}
                       {inferenceData && (
                         <div className="absolute inset-0">
-                          {/* Anomaly regions - red brushed areas */}
-                          {inferenceData.anomalies
-                            .filter(anomaly => anomalyVisibility[anomaly.id])
-                            .map((anomaly) => {
-                              const isHovered = hoveredAnomalyId === anomaly.id;
-                              
-                              return (
-                                <div
-                                  key={anomaly.id}
-                                  className="absolute transition-all duration-200"
-                                  style={{
-                                    left: `${(anomaly.region.x / 640) * 100}%`,
-                                    top: `${(anomaly.region.y / 480) * 100}%`,
-                                    width: `${(anomaly.region.width / 640) * 100}%`,
-                                    height: `${(anomaly.region.height / 480) * 100}%`,
-                                    backgroundColor: isHovered ? 'rgba(239, 68, 68, 0.5)' : 'rgba(239, 68, 68, 0.35)',
-                                    border: `${isHovered ? '3' : '2'}px solid #ef4444`,
-                                    boxShadow: isHovered ? '0 0 20px rgba(239, 68, 68, 0.6)' : 'none',
-                                    zIndex: isHovered ? 10 : 2,
-                                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(239, 68, 68, 0.3) 4px, rgba(239, 68, 68, 0.3) 8px)',
-                                  }}
-                                  onMouseEnter={() => setHoveredAnomalyId(anomaly.id)}
-                                  onMouseLeave={() => setHoveredAnomalyId(null)}
-                                />
-                              );
-                            })}
+                          {/* Anomaly regions - red brushed polygonal areas */}
+                          <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 2 }}>
+                            <defs>
+                              <pattern id="anomaly-pattern" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+                                <rect width="4" height="8" fill="rgba(239, 68, 68, 0.3)" />
+                              </pattern>
+                            </defs>
+                            {inferenceData.anomalies
+                              .filter(anomaly => anomalyVisibility[anomaly.id])
+                              .map((anomaly) => {
+                                const isHovered = hoveredAnomalyId === anomaly.id;
+                                const points = anomaly.polygon
+                                  .map(p => `${(p.x / 640) * 100}%,${(p.y / 480) * 100}%`)
+                                  .join(' ');
+                                
+                                // Calculate centroid for potential label placement
+                                const svgPoints = anomaly.polygon
+                                  .map(p => `${(p.x / 640) * 100},${(p.y / 480) * 100}`)
+                                  .join(' ');
+                                
+                                return (
+                                  <g key={anomaly.id}>
+                                    <polygon
+                                      points={svgPoints}
+                                      fill={isHovered ? 'rgba(239, 68, 68, 0.5)' : 'url(#anomaly-pattern)'}
+                                      stroke="#ef4444"
+                                      strokeWidth={isHovered ? 3 : 2}
+                                      style={{
+                                        cursor: 'pointer',
+                                        filter: isHovered ? 'drop-shadow(0 0 10px rgba(239, 68, 68, 0.6))' : 'none',
+                                        transition: 'all 0.2s',
+                                      }}
+                                      onMouseEnter={() => setHoveredAnomalyId(anomaly.id)}
+                                      onMouseLeave={() => setHoveredAnomalyId(null)}
+                                    />
+                                    {/* Overlay with solid color for hover effect */}
+                                    {isHovered && (
+                                      <polygon
+                                        points={svgPoints}
+                                        fill="rgba(239, 68, 68, 0.35)"
+                                        stroke="none"
+                                        style={{ pointerEvents: 'none' }}
+                                      />
+                                    )}
+                                  </g>
+                                );
+                              })}
+                          </svg>
                           
                           {/* Detection boxes */}
                           {inferenceData.detections
@@ -528,7 +566,7 @@ export const ObjectDetectionViewer = () => {
                                   {anomaly.name}
                                 </Badge>
                                 <div className="text-xs text-muted-foreground">
-                                  {anomaly.region.width}×{anomaly.region.height}px
+                                  {anomaly.polygon.length} points
                                 </div>
                               </div>
                             </div>
