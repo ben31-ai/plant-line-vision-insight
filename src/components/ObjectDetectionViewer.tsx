@@ -21,9 +21,22 @@ interface DetectionResult {
   };
 }
 
+interface AnomalyResult {
+  id: string;
+  name: string;
+  score: number;
+  region: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
 interface InferenceData {
   image: string;
   detections: DetectionResult[];
+  anomalies: AnomalyResult[];
   processingTime: number;
   modelName: string;
 }
@@ -34,7 +47,9 @@ export const ObjectDetectionViewer = () => {
   const [inferenceData, setInferenceData] = useState<InferenceData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<string, boolean>>({});
+  const [anomalyVisibility, setAnomalyVisibility] = useState<Record<string, boolean>>({});
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredAnomalyId, setHoveredAnomalyId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -117,6 +132,26 @@ export const ObjectDetectionViewer = () => {
         bbox: { x: 400, y: 80, width: 140, height: 26 }
       }
     ],
+    anomalies: [
+      {
+        id: "anomaly-1",
+        name: "Surface Scratch",
+        score: 0.89,
+        region: { x: 200, y: 250, width: 100, height: 80 }
+      },
+      {
+        id: "anomaly-2",
+        name: "Color Defect",
+        score: 0.72,
+        region: { x: 450, y: 300, width: 120, height: 60 }
+      },
+      {
+        id: "anomaly-3",
+        name: "Missing Component",
+        score: 0.95,
+        region: { x: 80, y: 350, width: 90, height: 70 }
+      }
+    ],
     processingTime: 245,
     modelName: "OCR-TextDetection-v2"
   };
@@ -153,6 +188,13 @@ export const ObjectDetectionViewer = () => {
     });
     setClassVisibility(initialVisibility);
     
+    // Initialize anomaly visibility - all anomalies visible by default
+    const initialAnomalyVisibility: Record<string, boolean> = {};
+    newInferenceData.anomalies.forEach(anomaly => {
+      initialAnomalyVisibility[anomaly.id] = true;
+    });
+    setAnomalyVisibility(initialAnomalyVisibility);
+    
     setIsLoading(false);
   };
 
@@ -160,6 +202,13 @@ export const ObjectDetectionViewer = () => {
     setClassVisibility(prev => ({
       ...prev,
       [className]: !prev[className]
+    }));
+  };
+
+  const toggleAnomalyVisibility = (anomalyId: string) => {
+    setAnomalyVisibility(prev => ({
+      ...prev,
+      [anomalyId]: !prev[anomalyId]
     }));
   };
 
@@ -260,6 +309,34 @@ export const ObjectDetectionViewer = () => {
                       {/* Overlay detection boxes if inference is done */}
                       {inferenceData && (
                         <div className="absolute inset-0">
+                          {/* Anomaly regions - red brushed areas */}
+                          {inferenceData.anomalies
+                            .filter(anomaly => anomalyVisibility[anomaly.id])
+                            .map((anomaly) => {
+                              const isHovered = hoveredAnomalyId === anomaly.id;
+                              
+                              return (
+                                <div
+                                  key={anomaly.id}
+                                  className="absolute transition-all duration-200"
+                                  style={{
+                                    left: `${(anomaly.region.x / 640) * 100}%`,
+                                    top: `${(anomaly.region.y / 480) * 100}%`,
+                                    width: `${(anomaly.region.width / 640) * 100}%`,
+                                    height: `${(anomaly.region.height / 480) * 100}%`,
+                                    backgroundColor: isHovered ? 'rgba(239, 68, 68, 0.5)' : 'rgba(239, 68, 68, 0.35)',
+                                    border: `${isHovered ? '3' : '2'}px solid #ef4444`,
+                                    boxShadow: isHovered ? '0 0 20px rgba(239, 68, 68, 0.6)' : 'none',
+                                    zIndex: isHovered ? 10 : 2,
+                                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(239, 68, 68, 0.3) 4px, rgba(239, 68, 68, 0.3) 8px)',
+                                  }}
+                                  onMouseEnter={() => setHoveredAnomalyId(anomaly.id)}
+                                  onMouseLeave={() => setHoveredAnomalyId(null)}
+                                />
+                              );
+                            })}
+                          
+                          {/* Detection boxes */}
                           {inferenceData.detections
                             .filter(detection => classVisibility[detection.class])
                             .map((detection, index) => {
@@ -404,7 +481,62 @@ export const ObjectDetectionViewer = () => {
                     </div>
                   </div>
 
-                  {/* Global Scores */}
+                  {/* Anomalies List */}
+                  {inferenceData.anomalies.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-3 text-red-600">
+                        Detected Anomalies ({inferenceData.anomalies.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {inferenceData.anomalies.map((anomaly) => {
+                          const isHovered = hoveredAnomalyId === anomaly.id;
+                          
+                          return (
+                            <div 
+                              key={anomaly.id}
+                              className="p-3 rounded-lg border transition-all duration-200 cursor-pointer space-y-2"
+                              style={{
+                                borderColor: isHovered ? '#ef4444' : undefined,
+                                backgroundColor: isHovered ? 'rgba(239, 68, 68, 0.1)' : undefined,
+                                boxShadow: isHovered ? '0 0 8px rgba(239, 68, 68, 0.3)' : undefined,
+                              }}
+                              onMouseEnter={() => setHoveredAnomalyId(anomaly.id)}
+                              onMouseLeave={() => setHoveredAnomalyId(null)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-red-500/20 border border-red-500">
+                                    <span className="text-red-500 text-xs">!</span>
+                                  </div>
+                                  <Switch 
+                                    checked={anomalyVisibility[anomaly.id] || false}
+                                    onCheckedChange={() => toggleAnomalyVisibility(anomaly.id)}
+                                  />
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                                    <span className={`w-2 h-2 rounded-full ${anomaly.score >= 0.9 ? 'bg-red-600' : anomaly.score >= 0.7 ? 'bg-orange-500' : 'bg-yellow-500'}`} />
+                                    Score: {(anomaly.score * 100).toFixed(1)}%
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="pl-9 space-y-1">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs text-red-600 border-red-400"
+                                >
+                                  {anomaly.name}
+                                </Badge>
+                                <div className="text-xs text-muted-foreground">
+                                  {anomaly.region.width}×{anomaly.region.height}px
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                     <div className="text-center p-3 rounded-lg bg-muted/50">
                       <div className="text-xl font-bold text-primary">
